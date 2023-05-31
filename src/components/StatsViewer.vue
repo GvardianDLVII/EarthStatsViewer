@@ -33,9 +33,10 @@
               <v-radio label="Destroyed buildings" :value="15"></v-radio>
               <v-radio label="Military units" :value="16"></v-radio>
               <v-radio label="Units value" :value="17"></v-radio>
-              <v-radio label="K/D" :value="18"></v-radio>
-              <v-radio label="K/D 5min" :value="19"></v-radio>
-              <v-radio label="Money flow" :value="20"></v-radio>
+              <v-radio label="Avg units value" :value="18"></v-radio>
+              <v-radio label="K/D" :value="19"></v-radio>
+              <v-radio label="K/D 5min" :value="20"></v-radio>
+              <v-radio label="Money flow" :value="21"></v-radio>
             </v-radio-group>
           </v-card-text>
         </v-card>
@@ -141,8 +142,9 @@ export default {
               : this.currentChart == 15 ? this.gameStats.statsData.destroyedBuildings[i].values.slice(this.chartRange[0], this.chartRange[1])
               : this.currentChart == 16 ? this.gameStats.statsData.militaryUnits[i].values.slice(this.chartRange[0], this.chartRange[1])
               : this.currentChart == 17 ? this.gameStats.statsData.unitsValue[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 18 ? this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => d/this.gameStats.statsData.unitsLost[i].values[j]).slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 19 ? this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : this.gameStats.statsData.destroyedUnits[i].values[j - 300]))/(this.gameStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.gameStats.statsData.unitsLost[i].values[j - 300]))).slice(this.chartRange[0], this.chartRange[1])
+              : this.currentChart == 18 ? this.gameStats.statsData.unitsValue[i].values.map((d, j) => d/this.gameStats.statsData.militaryUnits[i].values[j]).slice(this.chartRange[0], this.chartRange[1])
+              : this.currentChart == 19 ? this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => d/this.gameStats.statsData.unitsLost[i].values[j]).slice(this.chartRange[0], this.chartRange[1])
+              : this.currentChart == 20 ? this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : this.gameStats.statsData.destroyedUnits[i].values[j - 300]))/(this.gameStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.gameStats.statsData.unitsLost[i].values[j - 300]))).slice(this.chartRange[0], this.chartRange[1])
               : this.gameStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.gameStats.statsData.minedMoney[i].values[j - 60])).slice(this.chartRange[0], this.chartRange[1]),
           backgroundColor: this.playerColors[i],
           borderColor: this.playerColors[i],
