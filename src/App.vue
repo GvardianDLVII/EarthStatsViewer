@@ -1,11 +1,11 @@
 <template>
   <v-app>
     <v-main>
-      <HelloWorld />
+      <StatsViewer />
     </v-main>
   </v-app>
 </template>
 
 <script setup lang="ts">
-  import HelloWorld from '@/components/HelloWorld.vue'
+  import StatsViewer from '@/components/StatsViewer.vue'
 </script>

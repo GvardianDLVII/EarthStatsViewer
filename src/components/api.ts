@@ -1,19 +1,16 @@
-export interface GameStats
-{
+export interface GameStats {
   apiVersion: number;
   levelName: string;
   players: Player[];
   statsData: StatsData;
 }
 
-export interface Player
-{
+export interface Player {
   name: string;
   race: number;
 }
 
-export interface StatsData
-{
+export interface StatsData {
   ticks: number[];
   currentMoney: StatsMetric[];
   minedMoney: StatsMetric[];
@@ -34,7 +31,12 @@ export interface StatsData
   unitsValue: StatsMetric[];
 }
 
-export interface StatsMetric
-{
+export interface StatsMetric {
   values: number[];
+}
+
+export enum ChartType {
+  CurrentMoney = "CurrentMoney",
+  MilitaryUnits = "MilitaryUnits",
+  UnitsValue = "UnitsValue",
 }
