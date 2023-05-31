@@ -35,8 +35,9 @@ export interface StatsMetric {
   values: number[];
 }
 
-export enum ChartType {
-  CurrentMoney = "CurrentMoney",
-  MilitaryUnits = "MilitaryUnits",
-  UnitsValue = "UnitsValue",
+export interface StatsMetricModel {
+  id: number;
+  name: string;
+  description: string;
+  getValue(gameStats: GameStats, index: number, range: number[]) : number[];
 }

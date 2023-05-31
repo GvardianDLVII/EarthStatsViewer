@@ -16,27 +16,9 @@
               :clearable="false"
             />
             <v-radio-group v-model="currentChart" :density="'compact'">
-              <v-radio label="Current money" :value="1"></v-radio>
-              <v-radio label="Mined money" :value="2"></v-radio>
-              <v-radio label="Spent money" :value="3"></v-radio>
-              <v-radio label="Buildings cost" :value="4"></v-radio>
-              <v-radio label="Bld weapon cost" :value="5"></v-radio>
-              <v-radio label="Units cost" :value="6"></v-radio>
-              <v-radio label="Researches cost" :value="7"></v-radio>
-              <v-radio label="Ammo cost" :value="8"></v-radio>
-              <v-radio label="Researches count" :value="9"></v-radio>
-              <v-radio label="Buildings built" :value="10"></v-radio>
-              <v-radio label="Buildings lost" :value="11"></v-radio>
-              <v-radio label="Units built" :value="12"></v-radio>
-              <v-radio label="Units lost" :value="13"></v-radio>
-              <v-radio label="Destroyed units" :value="14"></v-radio>
-              <v-radio label="Destroyed buildings" :value="15"></v-radio>
-              <v-radio label="Military units" :value="16"></v-radio>
-              <v-radio label="Units value" :value="17"></v-radio>
-              <v-radio label="Avg units value" :value="18"></v-radio>
-              <v-radio label="K/D" :value="19"></v-radio>
-              <v-radio label="K/D 5min" :value="20"></v-radio>
-              <v-radio label="Money flow" :value="21"></v-radio>
+              <template v-for="item in metricTypes" :key="item.id">
+                <v-radio :label="item.name" :value="item.id"></v-radio>
+              </template>
             </v-radio-group>
           </v-card-text>
         </v-card>
@@ -64,6 +46,9 @@
               </template>
             </v-range-slider>
           </v-card-text>
+          <v-card-subtitle class="d-flex align-center">
+            <v-spacer /><h3>{{ currentChartDescription }}</h3><v-spacer />
+          </v-card-subtitle>
         </v-card>
         <v-card v-else :elevation="8" class="fill-height">
           <v-card-subtitle class="d-flex align-center fill-height">
@@ -78,11 +63,11 @@
 <script lang="ts">
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend } from 'chart.js'
-import { GameStats, Player, StatsMetric } from './api';
+import { GameStats, StatsMetricModel } from './api';
+import { createBackgroundPlugin } from '@/plugins/chartjs';
+import { readStats } from './statsReader';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend);
-
-
 
 export default {
   components: { Line },
@@ -97,61 +82,59 @@ export default {
         plugins: {
           customCanvasBackgroundColor: {
             color: '#c1cbe3',
-          }
+          },
         },
       } as any,
-      plugin: {
-        id: 'customCanvasBackgroundColor',
-        beforeDraw: (chart: any, args: any, options: any) => {
-          const {ctx} = chart;
-          ctx.save();
-          ctx.globalCompositeOperation = 'destination-over';
-          ctx.fillStyle = options.color || '#99ffff';
-          ctx.fillRect(0, 0, chart.width, chart.height);
-          ctx.restore();
-        },
-      },
+      plugin: createBackgroundPlugin(),
 
       files: [] as File[],
       gameStats: undefined as unknown as GameStats,
       currentChart: 1,
       chartRange: [0, 0],
+      races: {1: "UCS", 2: "ED", 3: "LC"} as any,
     }),
   computed: {
+    metricTypes(): StatsMetricModel[] {
+      return [
+        { id: 1, name: "Current money", description: "Money [CR] over time", getValue: (gs, i, range) => { return gs.statsData.currentMoney[i].values.slice(range[0], range[1]); }},
+        { id: 2, name: "Mined money", description: "Money [CR] mined over time", getValue: (gs, i, range) => { return gs.statsData.minedMoney[i].values.slice(range[0], range[1]); }},
+        { id: 3, name: "Spent money", description: "Money [CR] spent over time", getValue: (gs, i, range) => { return gs.statsData.spentMoney[i].values.slice(range[0], range[1]); }},
+        { id: 4, name: "Buildings cost", description: "Buildings cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.buildingsCost[i].values.slice(range[0], range[1]); }},
+        { id: 5, name: "Building weapons cost", description: "Building weapons cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.buildingWeaponsCost[i].values.slice(range[0], range[1]); }},
+        { id: 6, name: "Units cost", description: "Units cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.unitsCost[i].values.slice(range[0], range[1]); }},
+        { id: 7, name: "Researches cost", description: "Researches cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.researchesCost[i].values.slice(range[0], range[1]); }},
+        { id: 8, name: "Ammo cost", description: "Ammo cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.ammoCost[i].values.slice(range[0], range[1]); }},
+        { id: 9, name: "Researches count", description: "Number of researches over time", getValue: (gs, i, range) => { return gs.statsData.researchesCount[i].values.slice(range[0], range[1]); }},
+        { id: 10, name: "Buildings built", description: "Number of buildings built over time", getValue: (gs, i, range) => { return gs.statsData.buildingsBuilt[i].values.slice(range[0], range[1]); }},
+        { id: 11, name: "Buildings lost", description: "Number of buildings lost over time", getValue: (gs, i, range) => { return gs.statsData.buildingsLost[i].values.slice(range[0], range[1]); }},
+        { id: 12, name: "Units built", description: "Number of units built over time", getValue: (gs, i, range) => { return gs.statsData.unitsBuilt[i].values.slice(range[0], range[1]); }},
+        { id: 13, name: "Units lost", description: "Number of units lost over time", getValue: (gs, i, range) => { return gs.statsData.unitsLost[i].values.slice(range[0], range[1]); }},
+        { id: 14, name: "Destroyed units", description: "Number of units destroyed over time", getValue: (gs, i, range) => { return gs.statsData.destroyedUnits[i].values.slice(range[0], range[1]); }},
+        { id: 15, name: "Destroyed buildings", description: "Number of buldings destroyed over time", getValue: (gs, i, range) => { return gs.statsData.destroyedBuildings[i].values.slice(range[0], range[1]); }},
+        { id: 16, name: "Military units", description: "Number of military units alive (army size)", getValue: (gs, i, range) => { return gs.statsData.militaryUnits[i].values.slice(range[0], range[1]); }},
+        { id: 17, name: "Units value", description: "Value [CR] of all alive military units", getValue: (gs, i, range) => { return gs.statsData.unitsValue[i].values.slice(range[0], range[1]); }},
+        { id: 18, name: "Avg units value", description: "Avg value [CR] of military units", getValue: (gs, i, range) => { return gs.statsData.unitsValue[i].values.map((d, j) => d/gs.statsData.militaryUnits[i].values[j]).slice(range[0], range[1]); }},
+        { id: 19, name: "K/D", description: "Destroyed to lost ratio of units", getValue: (gs, i, range) => { return gs.statsData.destroyedUnits[i].values.map((d, j) => d/gs.statsData.unitsLost[i].values[j]).slice(range[0], range[1]); }},
+        { id: 20, name: "K/D 5min", description: "Destroyed to lost ratio of units in timespan of previous 5 minutes", getValue: (gs, i, range) => { return gs.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : gs.statsData.destroyedUnits[i].values[j - 300]))/(gs.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : gs.statsData.unitsLost[i].values[j - 300]))).slice(range[0], range[1]); }},
+        { id: 21, name: "Money flow", description: "Money mined in time span of previous 60 seconds", getValue: (gs, i, range) => { return gs.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : gs.statsData.minedMoney[i].values[j - 60])).slice(range[0], range[1]); }},
+      ]
+    },
     chartData(): any {
       if(!this.gameStats) return {};
       return {
         labels: this.gameStats.statsData.ticks.slice(this.chartRange[0], this.chartRange[1]).map(i => new Date(i * 1000 / 20).toISOString().slice(11, 19)),
         datasets: this.gameStats.players.map((p, i) => ({
-          label: p.name, 
-          data:
-            this.currentChart == 1 ? this.gameStats.statsData.currentMoney[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 2 ? this.gameStats.statsData.minedMoney[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 3 ? this.gameStats.statsData.spentMoney[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 4 ? this.gameStats.statsData.buildingsCost[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 5 ? this.gameStats.statsData.buildingWeaponsCost[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 6 ? this.gameStats.statsData.unitsCost[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 7 ? this.gameStats.statsData.researchesCost[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 8 ? this.gameStats.statsData.ammoCost[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 9 ? this.gameStats.statsData.researchesCount[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 10 ? this.gameStats.statsData.buildingsBuilt[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 11 ? this.gameStats.statsData.buildingsLost[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 12 ? this.gameStats.statsData.unitsBuilt[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 13 ? this.gameStats.statsData.unitsLost[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 14 ? this.gameStats.statsData.destroyedUnits[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 15 ? this.gameStats.statsData.destroyedBuildings[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 16 ? this.gameStats.statsData.militaryUnits[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 17 ? this.gameStats.statsData.unitsValue[i].values.slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 18 ? this.gameStats.statsData.unitsValue[i].values.map((d, j) => d/this.gameStats.statsData.militaryUnits[i].values[j]).slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 19 ? this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => d/this.gameStats.statsData.unitsLost[i].values[j]).slice(this.chartRange[0], this.chartRange[1])
-              : this.currentChart == 20 ? this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : this.gameStats.statsData.destroyedUnits[i].values[j - 300]))/(this.gameStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.gameStats.statsData.unitsLost[i].values[j - 300]))).slice(this.chartRange[0], this.chartRange[1])
-              : this.gameStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.gameStats.statsData.minedMoney[i].values[j - 60])).slice(this.chartRange[0], this.chartRange[1]),
+          label: `${p.name} [${this.races[p.race]}]`, 
+          data: this.metricTypes.find(m => m.id == this.currentChart)?.getValue(this.gameStats, i, this.chartRange),
           backgroundColor: this.playerColors[i],
           borderColor: this.playerColors[i],
           borderWidth: 2,
           pointRadius: 0,
         })),
       };
+    },
+    currentChartDescription(): string | undefined {
+      return this.metricTypes.find(m => m.id == this.currentChart)?.description;
     },
     maxRange(): number {
       return this.gameStats ? this.gameStats.statsData.ticks.length - 1 : 0;
@@ -175,113 +158,18 @@ export default {
         "#FFE4FF",
         "#B7BBFF",
       ]
-    }
+    },
   },
   methods: {
     async readFile() {
       if (!this.files || !this.files.length)
         return;
-      let buffer = await this.files[0].arrayBuffer();
-      let dv = new DataView(buffer);
-      let offset = 0;
-      let fileApiVersion = dv.getUint32(offset, true);
-      offset += 4;
-      if (fileApiVersion > 1)
-        return; //todo: return Error
-      let levelNameLength = dv.getUint32(offset, true);
-      offset += 4;
-      let levelName = new TextDecoder("utf-16").decode(new Uint16Array(buffer.slice(offset, offset + levelNameLength * 2)));
-      offset += levelNameLength * 2;
-      let players = [] as Player[];
-      for(let i = 0; i< 16; i++) {
-        let slotTaken = dv.getInt8(offset);
-        offset++;
-        if(!slotTaken)
-          continue;
-        
-        let playerNameLength = dv.getUint32(offset, true);
-        offset += 4;
-        let playerName = new TextDecoder("utf-16").decode(new Uint16Array(buffer.slice(offset, offset + playerNameLength * 2)));
-        offset += playerNameLength * 2;
-        let race = dv.getUint32(offset, true);
-        offset += 4;
-        players.push({name: playerName, race: race});
-      }
-
-      this.gameStats = {
-        apiVersion: fileApiVersion,
-        levelName: levelName,
-        players: players,
-        statsData: {
-          ticks: [],
-          currentMoney: players.map<StatsMetric>(p => ({values: []})),
-          minedMoney: players.map<StatsMetric>(p => ({values: []})),
-          spentMoney: players.map<StatsMetric>(p => ({values: []})),
-          buildingsCost: players.map<StatsMetric>(p => ({values: []})),
-          buildingWeaponsCost: players.map<StatsMetric>(p => ({values: []})),
-          unitsCost: players.map<StatsMetric>(p => ({values: []})),
-          researchesCost: players.map<StatsMetric>(p => ({values: []})),
-          ammoCost: players.map<StatsMetric>(p => ({values: []})),
-          researchesCount: players.map<StatsMetric>(p => ({values: []})),
-          buildingsBuilt: players.map<StatsMetric>(p => ({values: []})),
-          buildingsLost: players.map<StatsMetric>(p => ({values: []})),
-          unitsBuilt: players.map<StatsMetric>(p => ({values: []})),
-          unitsLost: players.map<StatsMetric>(p => ({values: []})),
-          destroyedUnits: players.map<StatsMetric>(p => ({values: []})),
-          destroyedBuildings: players.map<StatsMetric>(p => ({values: []})),
-          militaryUnits: players.map<StatsMetric>(p => ({values: []})),
-          unitsValue: players.map<StatsMetric>(p => ({values: []})),
-        },
-      };
-      while (offset < dv.byteLength - 1)
-      {
-        offset += this.readLine(dv, offset);
-      }
+      let gameStats = await readStats(this.files[0]);
+      if (gameStats == undefined)
+        return;
+      this.gameStats = gameStats;
       this.chartRange[0] = 0;
       this.chartRange[1] = this.gameStats.statsData.ticks.length - 1;
-    },
-    readLine(dv: DataView, offset: number): number {
-      let localOffset = 0;
-      this.gameStats.statsData.ticks.push(dv.getUint32(offset + localOffset, true));
-      localOffset += 4;
-      for (let i = 0; i < this.gameStats.players.length; i++)
-      {
-        this.gameStats.statsData.currentMoney[i].values.push(dv.getUint32(offset + localOffset, true));
-        localOffset += 4;
-        this.gameStats.statsData.minedMoney[i].values.push(dv.getUint32(offset + localOffset, true));
-        localOffset += 4;
-        this.gameStats.statsData.spentMoney[i].values.push(dv.getUint32(offset + localOffset, true));
-        localOffset += 4;
-        this.gameStats.statsData.buildingsCost[i].values.push(dv.getUint32(offset + localOffset, true));
-        localOffset += 4;
-        this.gameStats.statsData.buildingWeaponsCost[i].values.push(dv.getUint32(offset + localOffset, true));
-        localOffset += 4;
-        this.gameStats.statsData.unitsCost[i].values.push(dv.getUint32(offset + localOffset, true));
-        localOffset += 4;
-        this.gameStats.statsData.researchesCost[i].values.push(dv.getUint32(offset + localOffset, true));
-        localOffset += 4;
-        this.gameStats.statsData.ammoCost[i].values.push(dv.getUint32(offset + localOffset, true));
-        localOffset += 4;
-        this.gameStats.statsData.researchesCount[i].values.push(dv.getUint16(offset + localOffset, true));
-        localOffset += 2;
-        this.gameStats.statsData.buildingsBuilt[i].values.push(dv.getUint16(offset + localOffset, true));
-        localOffset += 2;
-        this.gameStats.statsData.buildingsLost[i].values.push(dv.getUint16(offset + localOffset, true));
-        localOffset += 2;
-        this.gameStats.statsData.unitsBuilt[i].values.push(dv.getUint16(offset + localOffset, true));
-        localOffset += 2;
-        this.gameStats.statsData.unitsLost[i].values.push(dv.getUint16(offset + localOffset, true));
-        localOffset += 2;
-        this.gameStats.statsData.destroyedUnits[i].values.push(dv.getUint16(offset + localOffset, true));
-        localOffset += 2;
-        this.gameStats.statsData.destroyedBuildings[i].values.push(dv.getUint16(offset + localOffset, true));
-        localOffset += 2;
-        this.gameStats.statsData.militaryUnits[i].values.push(dv.getUint16(offset + localOffset, true));
-        localOffset += 2;
-        this.gameStats.statsData.unitsValue[i].values.push(dv.getUint32(offset + localOffset, true));
-        localOffset += 4;
-      }
-      return localOffset;
     },
   },
 }
