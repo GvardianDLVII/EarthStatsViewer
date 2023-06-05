@@ -2,7 +2,7 @@
   <v-container class="fill-height">
     <v-row class="fill-height">
       <v-col cols="2">
-        <v-card outlined :elevation="8" class="fill-height">
+        <v-card outlined :elevation="8" class="fill-height left-panel">
           <v-img src="/logo.png"></v-img>
           <v-card-title>Stats viewer</v-card-title>
           <v-divider />
@@ -14,18 +14,31 @@
               variant="outlined"
               @update:model-value="readFile"
               :clearable="false"
+              prepend-icon=""
+              class="stats-file-input"
             />
-            <v-radio-group v-model="currentChart" :density="'compact'">
-              <template v-for="item in metricTypes" :key="item.id">
-                <v-radio :label="item.name" :value="item.id"></v-radio>
+            <v-virtual-scroll height="600" :items="metricTypes">
+              <template v-slot:default="{ item }">
+                <v-btn
+                  variant="outlined"
+                  @click="select(item)"
+                  width="100%"
+                  :color="currentChart == item.id ? 'blue' : ''"
+                >
+                    {{ item.name}}
+                </v-btn>
               </template>
-            </v-radio-group>
+            </v-virtual-scroll>
           </v-card-text>
         </v-card>
       </v-col>
       <v-col id="chartCol">
         <v-card v-if="gameStats" outlined :elevation="8" class="fill-height">
-          <v-card-title>{{ gameStats.levelName }}</v-card-title>
+          <v-card-title class="d-flex">
+            <span>{{ gameStats.levelName }}</span>
+            <v-spacer />
+            <span>{{ gameStats.dateTime.toLocaleString() }}</span>
+          </v-card-title>
           <v-divider />
           <v-card-text>
             <Line id="chart-id"
@@ -63,7 +76,7 @@
 <script lang="ts">
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend } from 'chart.js'
-import { GameStats, StatsMetricModel } from './api';
+import { GameStats, Player, StatsMetricModel } from './api';
 import { createBackgroundPlugin } from '@/plugins/chartjs';
 import { readStats } from './statsReader';
 
@@ -104,6 +117,8 @@ export default {
         { id: 6, name: "Units cost", description: "Units cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.unitsCost[i].values.slice(range[0], range[1]); }},
         { id: 7, name: "Researches cost", description: "Researches cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.researchesCost[i].values.slice(range[0], range[1]); }},
         { id: 8, name: "Ammo cost", description: "Ammo cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.ammoCost[i].values.slice(range[0], range[1]); }},
+        { id: 22, name: "Money transferred", description: "Money [CR] transferred to allies", getValue: (gs, i, range) => { return gs.statsData.moneyTransferred[i].values.slice(range[0], range[1]); }},
+        { id: 21, name: "Money flow", description: "Money [CR] mined in time span of previous 60 seconds", getValue: (gs, i, range) => { return gs.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : gs.statsData.minedMoney[i].values[j - 60])).slice(range[0], range[1]); }},
         { id: 9, name: "Researches count", description: "Number of researches over time", getValue: (gs, i, range) => { return gs.statsData.researchesCount[i].values.slice(range[0], range[1]); }},
         { id: 10, name: "Buildings built", description: "Number of buildings built over time", getValue: (gs, i, range) => { return gs.statsData.buildingsBuilt[i].values.slice(range[0], range[1]); }},
         { id: 11, name: "Buildings lost", description: "Number of buildings lost over time", getValue: (gs, i, range) => { return gs.statsData.buildingsLost[i].values.slice(range[0], range[1]); }},
@@ -116,7 +131,8 @@ export default {
         { id: 18, name: "Avg units value", description: "Avg value [CR] of military units", getValue: (gs, i, range) => { return gs.statsData.unitsValue[i].values.map((d, j) => d/gs.statsData.militaryUnits[i].values[j]).slice(range[0], range[1]); }},
         { id: 19, name: "K/D", description: "Destroyed to lost ratio of units", getValue: (gs, i, range) => { return gs.statsData.destroyedUnits[i].values.map((d, j) => d/gs.statsData.unitsLost[i].values[j]).slice(range[0], range[1]); }},
         { id: 20, name: "K/D 5min", description: "Destroyed to lost ratio of units in timespan of previous 5 minutes", getValue: (gs, i, range) => { return gs.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : gs.statsData.destroyedUnits[i].values[j - 300]))/(gs.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : gs.statsData.unitsLost[i].values[j - 300]))).slice(range[0], range[1]); }},
-        { id: 21, name: "Money flow", description: "Money mined in time span of previous 60 seconds", getValue: (gs, i, range) => { return gs.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : gs.statsData.minedMoney[i].values[j - 60])).slice(range[0], range[1]); }},
+        { id: 23, name: "Units captured", description: "Number of units captured", getValue: (gs, i, range) => { return gs.statsData.unitsCaptured[i].values.slice(range[0], range[1]); }},
+        { id: 24, name: "Units received", description: "Number of units received from allies", getValue: (gs, i, range) => { return gs.statsData.unitsTransferred[i].values.slice(range[0], range[1]); }},
       ]
     },
     chartData(): any {
@@ -124,12 +140,13 @@ export default {
       return {
         labels: this.gameStats.statsData.ticks.slice(this.chartRange[0], this.chartRange[1]).map(i => new Date(i * 1000 / 20).toISOString().slice(11, 19)),
         datasets: this.gameStats.players.map((p, i) => ({
-          label: `${p.name} [${this.races[p.race]}]`, 
+          label: `${this.teamPrefix(p)} ${p.name} [${this.races[p.race]}]`, 
           data: this.metricTypes.find(m => m.id == this.currentChart)?.getValue(this.gameStats, i, this.chartRange),
-          backgroundColor: this.playerColors[i],
-          borderColor: this.playerColors[i],
+          backgroundColor: this.playerColors[p.index],
+          borderColor: this.playerColors[p.index],
           borderWidth: 2,
           pointRadius: 0,
+          hidden: p.isSpectator,
         })),
       };
     },
@@ -171,12 +188,25 @@ export default {
       this.chartRange[0] = 0;
       this.chartRange[1] = this.gameStats.statsData.ticks.length - 1;
     },
+    teamPrefix(player: Player): string {
+      if (player.isSpectator)
+        return "[Obs]";
+      return `[${player.team}]`;
+    },
+    select(item :StatsMetricModel): void {
+      this.currentChart = item.id;
+    },
   },
 }
 
 </script>
-<style scoped>
+<style>
   #chartCol>div {
     height: 100%;
+  }
+
+  .stats-file-input .v-field__input {
+    font-size: 13px;
+    line-height: 24px;
   }
 </style>

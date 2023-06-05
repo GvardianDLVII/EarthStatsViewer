@@ -1,13 +1,18 @@
 export interface GameStats {
   apiVersion: number;
   levelName: string;
+  dateTime: Date;
   players: Player[];
   statsData: StatsData;
 }
 
 export interface Player {
+  index: number;
   name: string;
   race: number;
+  alliances: boolean[];
+  isSpectator: boolean;
+  team: number;
 }
 
 export interface StatsData {
@@ -29,6 +34,9 @@ export interface StatsData {
   destroyedBuildings: StatsMetric[];
   militaryUnits: StatsMetric[];
   unitsValue: StatsMetric[];
+  moneyTransferred: StatsMetric[];
+  unitsCaptured: StatsMetric[];
+  unitsTransferred: StatsMetric[];
 }
 
 export interface StatsMetric {
