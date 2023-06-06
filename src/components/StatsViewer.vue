@@ -17,7 +17,8 @@
               prepend-icon=""
               class="stats-file-input"
             />
-            <v-virtual-scroll height="600" :items="metricTypes">
+            <v-switch v-model="teamMode" :density="'compact'" label="Team mode"></v-switch>
+            <v-virtual-scroll height="540" :items="metricTypes">
               <template v-slot:default="{ item }">
                 <v-btn
                   variant="outlined"
@@ -76,7 +77,7 @@
 <script lang="ts">
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend } from 'chart.js'
-import { GameStats, Player, StatsMetricModel } from './api';
+import { GameStats, Player, PlayerStatsModel, StatsMetricModel } from './api';
 import { createBackgroundPlugin } from '@/plugins/chartjs';
 import { readStats } from './statsReader';
 
@@ -103,47 +104,125 @@ export default {
       files: [] as File[],
       gameStats: undefined as unknown as GameStats,
       currentChart: 1,
+      teamMode: false,
       chartRange: [0, 0],
       races: {1: "UCS", 2: "ED", 3: "LC"} as any,
     }),
   computed: {
+    playerStats(): PlayerStatsModel[] {
+      return this.gameStats.players.map<PlayerStatsModel>((p, i) => { 
+        return {
+          displayName: `${this.teamPrefix(p)} ${p.name} [${this.races[p.race]}]`,
+          name: p.name,
+          isSpectator: p.isSpectator,
+          color: this.playerColors[p.index],
+          team: p.team,
+
+          currentMoney: this.gameStats.statsData.currentMoney[i].values,
+          minedMoney: this.gameStats.statsData.minedMoney[i].values,
+          spentMoney: this.gameStats.statsData.spentMoney[i].values,
+          buildingsCost: this.gameStats.statsData.buildingsCost[i].values,
+          buildingWeaponsCost: this.gameStats.statsData.buildingWeaponsCost[i].values,
+          unitsCost: this.gameStats.statsData.unitsCost[i].values,
+          researchesCost: this.gameStats.statsData.researchesCost[i].values,
+          ammoCost: this.gameStats.statsData.ammoCost[i].values,
+          researchesCount: this.gameStats.statsData.researchesCount[i].values,
+          buildingsBuilt: this.gameStats.statsData.buildingsBuilt[i].values,
+          buildingsLost: this.gameStats.statsData.buildingsLost[i].values,
+          unitsBuilt: this.gameStats.statsData.unitsBuilt[i].values,
+          unitsLost: this.gameStats.statsData.unitsLost[i].values,
+          destroyedUnits: this.gameStats.statsData.destroyedUnits[i].values,
+          destroyedBuildings: this.gameStats.statsData.destroyedBuildings[i].values,
+          militaryUnits: this.gameStats.statsData.militaryUnits[i].values,
+          unitsValue: this.gameStats.statsData.unitsValue[i].values,
+          moneyTransferred: this.gameStats.statsData.moneyTransferred[i].values,
+          unitsCaptured: this.gameStats.statsData.unitsCaptured[i].values,
+          unitsTransferred: this.gameStats.statsData.unitsTransferred[i].values,
+          moneyFlow: this.gameStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.gameStats.statsData.minedMoney[i].values[j - 60])),
+          avgUnitsValue: this.gameStats.statsData.unitsValue[i].values.map((d, j) => d/this.gameStats.statsData.militaryUnits[i].values[j]),
+          killsDeaths: this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => d/this.gameStats.statsData.unitsLost[i].values[j]),
+          killsDeathsFiveMin: this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : this.gameStats.statsData.destroyedUnits[i].values[j - 300]))/(this.gameStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.gameStats.statsData.unitsLost[i].values[j - 300]))),
+        };
+      });
+    },
+    teamStats(): PlayerStatsModel[] {
+      let teams = this.playerStats.filter(p => !p.isSpectator).map(p => p.team);
+      let distinctTeams = teams.filter((t, i) => teams.indexOf(t) == i);
+      return distinctTeams.map(t => {
+        let teamPlayers = this.playerStats.filter(p => p.team == t);
+        return {
+          displayName: `[${t}] ${teamPlayers.map(tp => tp.name).join("/")}`,
+          name: teamPlayers.map(tp => tp.name).join("/"),
+          isSpectator: false,
+          color: teamPlayers[0].color,
+          team: t,
+          currentMoney: teamPlayers[0].currentMoney.map((_v, i) => teamPlayers.map(tp => tp.currentMoney[i]).reduce((s, a) => s + a, 0)),
+          minedMoney: teamPlayers[0].minedMoney.map((_v, i) => teamPlayers.map(tp => tp.minedMoney[i]).reduce((s, a) => s + a, 0)),
+          spentMoney: teamPlayers[0].spentMoney.map((_v, i) => teamPlayers.map(tp => tp.spentMoney[i]).reduce((s, a) => s + a, 0)),
+          buildingsCost: teamPlayers[0].buildingsCost.map((_v, i) => teamPlayers.map(tp => tp.buildingsCost[i]).reduce((s, a) => s + a, 0)),
+          buildingWeaponsCost: teamPlayers[0].buildingWeaponsCost.map((_v, i) => teamPlayers.map(tp => tp.buildingWeaponsCost[i]).reduce((s, a) => s + a, 0)),
+          unitsCost: teamPlayers[0].unitsCost.map((_v, i) => teamPlayers.map(tp => tp.unitsCost[i]).reduce((s, a) => s + a, 0)),
+          researchesCost: teamPlayers[0].researchesCost.map((_v, i) => teamPlayers.map(tp => tp.researchesCost[i]).reduce((s, a) => s + a, 0)),
+          ammoCost: teamPlayers[0].ammoCost.map((_v, i) => teamPlayers.map(tp => tp.ammoCost[i]).reduce((s, a) => s + a, 0)),
+          researchesCount: teamPlayers[0].researchesCount.map((_v, i) => teamPlayers.map(tp => tp.researchesCount[i]).reduce((s, a) => s + a, 0)),
+          buildingsBuilt: teamPlayers[0].buildingsBuilt.map((_v, i) => teamPlayers.map(tp => tp.buildingsBuilt[i]).reduce((s, a) => s + a, 0)),
+          buildingsLost: teamPlayers[0].buildingsLost.map((_v, i) => teamPlayers.map(tp => tp.buildingsLost[i]).reduce((s, a) => s + a, 0)),
+          unitsBuilt: teamPlayers[0].unitsBuilt.map((_v, i) => teamPlayers.map(tp => tp.unitsBuilt[i]).reduce((s, a) => s + a, 0)),
+          unitsLost: teamPlayers[0].unitsLost.map((_v, i) => teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)),
+          destroyedUnits: teamPlayers[0].destroyedUnits.map((_v, i) => teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0)),
+          destroyedBuildings: teamPlayers[0].destroyedBuildings.map((_v, i) => teamPlayers.map(tp => tp.destroyedBuildings[i]).reduce((s, a) => s + a, 0)),
+          militaryUnits: teamPlayers[0].militaryUnits.map((_v, i) => teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)),
+          unitsValue: teamPlayers[0].unitsValue.map((_v, i) => teamPlayers.map(tp => tp.unitsValue[i]).reduce((s, a) => s + a, 0)),
+          moneyTransferred: teamPlayers[0].moneyTransferred.map((_v, i) => teamPlayers.map(tp => tp.moneyTransferred[i]).reduce((s, a) => s + a, 0)),
+          unitsCaptured: teamPlayers[0].unitsCaptured.map((_v, i) => teamPlayers.map(tp => tp.unitsCaptured[i]).reduce((s, a) => s + a, 0)),
+          unitsTransferred: teamPlayers[0].unitsTransferred.map((_v, i) => teamPlayers.map(tp => tp.unitsTransferred[i]).reduce((s, a) => s + a, 0)),
+          moneyFlow: teamPlayers[0].moneyFlow.map((_v, i) => teamPlayers.map(tp => tp.moneyFlow[i]).reduce((s, a) => s + a, 0)),
+          avgUnitsValue: teamPlayers[0].avgUnitsValue.map((_v, i) => teamPlayers.map(tp => tp.unitsValue[i]).reduce((s, a) => s + a, 0) / teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)),
+          killsDeaths: teamPlayers[0].killsDeaths.map((_v, i) => teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0) / teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)),
+          killsDeathsFiveMin: teamPlayers[0].killsDeathsFiveMin.map((_v, i) => (teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0) - (i < 300 ? 0 : teamPlayers.map(tp => tp.destroyedUnits[i - 300]).reduce((s, a) => s + a, 0))) / (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0) - (i < 300 ? 0 : teamPlayers.map(tp => tp.unitsLost[i - 300]).reduce((s, a) => s + a, 0)))),
+        };
+      });
+    },
+    statsItems(): PlayerStatsModel[] {
+      return this.teamMode ? this.teamStats : this.playerStats;
+    },
     metricTypes(): StatsMetricModel[] {
       return [
-        { id: 1, name: "Current money", description: "Money [CR] over time", getValue: (gs, i, range) => { return gs.statsData.currentMoney[i].values.slice(range[0], range[1]); }},
-        { id: 2, name: "Mined money", description: "Money [CR] mined over time", getValue: (gs, i, range) => { return gs.statsData.minedMoney[i].values.slice(range[0], range[1]); }},
-        { id: 3, name: "Spent money", description: "Money [CR] spent over time", getValue: (gs, i, range) => { return gs.statsData.spentMoney[i].values.slice(range[0], range[1]); }},
-        { id: 4, name: "Buildings cost", description: "Buildings cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.buildingsCost[i].values.slice(range[0], range[1]); }},
-        { id: 5, name: "Building weapons cost", description: "Building weapons cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.buildingWeaponsCost[i].values.slice(range[0], range[1]); }},
-        { id: 6, name: "Units cost", description: "Units cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.unitsCost[i].values.slice(range[0], range[1]); }},
-        { id: 7, name: "Researches cost", description: "Researches cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.researchesCost[i].values.slice(range[0], range[1]); }},
-        { id: 8, name: "Ammo cost", description: "Ammo cost [CR] over time", getValue: (gs, i, range) => { return gs.statsData.ammoCost[i].values.slice(range[0], range[1]); }},
-        { id: 22, name: "Money transferred", description: "Money [CR] transferred to allies", getValue: (gs, i, range) => { return gs.statsData.moneyTransferred[i].values.slice(range[0], range[1]); }},
-        { id: 21, name: "Money flow", description: "Money [CR] mined in time span of previous 60 seconds", getValue: (gs, i, range) => { return gs.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : gs.statsData.minedMoney[i].values[j - 60])).slice(range[0], range[1]); }},
-        { id: 9, name: "Researches count", description: "Number of researches over time", getValue: (gs, i, range) => { return gs.statsData.researchesCount[i].values.slice(range[0], range[1]); }},
-        { id: 10, name: "Buildings built", description: "Number of buildings built over time", getValue: (gs, i, range) => { return gs.statsData.buildingsBuilt[i].values.slice(range[0], range[1]); }},
-        { id: 11, name: "Buildings lost", description: "Number of buildings lost over time", getValue: (gs, i, range) => { return gs.statsData.buildingsLost[i].values.slice(range[0], range[1]); }},
-        { id: 12, name: "Units built", description: "Number of units built over time", getValue: (gs, i, range) => { return gs.statsData.unitsBuilt[i].values.slice(range[0], range[1]); }},
-        { id: 13, name: "Units lost", description: "Number of units lost over time", getValue: (gs, i, range) => { return gs.statsData.unitsLost[i].values.slice(range[0], range[1]); }},
-        { id: 14, name: "Destroyed units", description: "Number of units destroyed over time", getValue: (gs, i, range) => { return gs.statsData.destroyedUnits[i].values.slice(range[0], range[1]); }},
-        { id: 15, name: "Destroyed buildings", description: "Number of buldings destroyed over time", getValue: (gs, i, range) => { return gs.statsData.destroyedBuildings[i].values.slice(range[0], range[1]); }},
-        { id: 16, name: "Military units", description: "Number of military units alive (army size)", getValue: (gs, i, range) => { return gs.statsData.militaryUnits[i].values.slice(range[0], range[1]); }},
-        { id: 17, name: "Units value", description: "Value [CR] of all alive military units", getValue: (gs, i, range) => { return gs.statsData.unitsValue[i].values.slice(range[0], range[1]); }},
-        { id: 18, name: "Avg units value", description: "Avg value [CR] of military units", getValue: (gs, i, range) => { return gs.statsData.unitsValue[i].values.map((d, j) => d/gs.statsData.militaryUnits[i].values[j]).slice(range[0], range[1]); }},
-        { id: 19, name: "K/D", description: "Destroyed to lost ratio of units", getValue: (gs, i, range) => { return gs.statsData.destroyedUnits[i].values.map((d, j) => d/gs.statsData.unitsLost[i].values[j]).slice(range[0], range[1]); }},
-        { id: 20, name: "K/D 5min", description: "Destroyed to lost ratio of units in timespan of previous 5 minutes", getValue: (gs, i, range) => { return gs.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : gs.statsData.destroyedUnits[i].values[j - 300]))/(gs.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : gs.statsData.unitsLost[i].values[j - 300]))).slice(range[0], range[1]); }},
-        { id: 23, name: "Units captured", description: "Number of units captured", getValue: (gs, i, range) => { return gs.statsData.unitsCaptured[i].values.slice(range[0], range[1]); }},
-        { id: 24, name: "Units received", description: "Number of units received from allies", getValue: (gs, i, range) => { return gs.statsData.unitsTransferred[i].values.slice(range[0], range[1]); }},
+        { id: 1, name: "Current money", description: "Money [CR] over time", getValue: (p, range) => { return p.currentMoney.slice(range[0], range[1]); }},
+        { id: 2, name: "Mined money", description: "Money [CR] mined over time", getValue: (p, range) => { return p.minedMoney.slice(range[0], range[1]); }},
+        { id: 3, name: "Spent money", description: "Money [CR] spent over time", getValue: (p, range) => { return p.spentMoney.slice(range[0], range[1]); }},
+        { id: 4, name: "Buildings cost", description: "Buildings cost [CR] over time", getValue: (p, range) => { return p.buildingsCost.slice(range[0], range[1]); }},
+        { id: 5, name: "Building weapons cost", description: "Building weapons cost [CR] over time", getValue: (p, range) => { return p.buildingWeaponsCost.slice(range[0], range[1]); }},
+        { id: 6, name: "Units cost", description: "Units cost [CR] over time", getValue: (p, range) => { return p.unitsCost.slice(range[0], range[1]); }},
+        { id: 7, name: "Researches cost", description: "Researches cost [CR] over time", getValue: (p, range) => { return p.researchesCost.slice(range[0], range[1]); }},
+        { id: 8, name: "Ammo cost", description: "Ammo cost [CR] over time", getValue: (p, range) => { return p.ammoCost.slice(range[0], range[1]); }},
+        { id: 22, name: "Money transferred", description: "Money [CR] transferred to allies", getValue: (p, range) => { return p.moneyTransferred.slice(range[0], range[1]); }},
+        { id: 21, name: "Money flow", description: "Money [CR] mined in time span of previous 60 seconds", getValue: (p, range) => { return p.moneyFlow.slice(range[0], range[1]); }},
+        { id: 9, name: "Researches count", description: "Number of researches over time", getValue: (p, range) => { return p.researchesCount.slice(range[0], range[1]); }},
+        { id: 10, name: "Buildings built", description: "Number of buildings built over time", getValue: (p, range) => { return p.buildingsBuilt.slice(range[0], range[1]); }},
+        { id: 11, name: "Buildings lost", description: "Number of buildings lost over time", getValue: (p, range) => { return p.buildingsLost.slice(range[0], range[1]); }},
+        { id: 12, name: "Units built", description: "Number of units built over time", getValue: (p, range) => { return p.unitsBuilt.slice(range[0], range[1]); }},
+        { id: 13, name: "Units lost", description: "Number of units lost over time", getValue: (p, range) => { return p.unitsLost.slice(range[0], range[1]); }},
+        { id: 14, name: "Destroyed units", description: "Number of units destroyed over time", getValue: (p, range) => { return p.destroyedUnits.slice(range[0], range[1]); }},
+        { id: 15, name: "Destroyed buildings", description: "Number of buldings destroyed over time", getValue: (p, range) => { return p.destroyedBuildings.slice(range[0], range[1]); }},
+        { id: 16, name: "Military units", description: "Number of military units alive (army size)", getValue: (p, range) => { return p.militaryUnits.slice(range[0], range[1]); }},
+        { id: 17, name: "Units value", description: "Value [CR] of all alive military units", getValue: (p, range) => { return p.unitsValue.slice(range[0], range[1]); }},
+        { id: 18, name: "Avg units value", description: "Avg value [CR] of military units", getValue: (p, range) => { return p.avgUnitsValue.slice(range[0], range[1]); }},
+        { id: 19, name: "K/D", description: "Destroyed to lost ratio of units", getValue: (p, range) => { return p.killsDeaths.slice(range[0], range[1]); }},
+        { id: 20, name: "K/D 5min", description: "Destroyed to lost ratio of units in timespan of previous 5 minutes", getValue: (p, range) => { return p.killsDeathsFiveMin.slice(range[0], range[1]); }},
+        { id: 23, name: "Units captured", description: "Number of units captured", getValue: (p, range) => { return p.unitsCaptured.slice(range[0], range[1]); }},
+        { id: 24, name: "Units received", description: "Number of units received from allies", getValue: (p, range) => { return p.unitsTransferred.slice(range[0], range[1]); }},
       ]
     },
     chartData(): any {
       if(!this.gameStats) return {};
       return {
         labels: this.gameStats.statsData.ticks.slice(this.chartRange[0], this.chartRange[1]).map(i => new Date(i * 1000 / 20).toISOString().slice(11, 19)),
-        datasets: this.gameStats.players.map((p, i) => ({
-          label: `${this.teamPrefix(p)} ${p.name} [${this.races[p.race]}]`, 
-          data: this.metricTypes.find(m => m.id == this.currentChart)?.getValue(this.gameStats, i, this.chartRange),
-          backgroundColor: this.playerColors[p.index],
-          borderColor: this.playerColors[p.index],
+        datasets: this.statsItems.map(p => ({
+          label: p.displayName, 
+          data: this.metricTypes.find(m => m.id == this.currentChart)?.getValue(p, this.chartRange),
+          backgroundColor: p.color,
+          borderColor: p.color,
           borderWidth: 2,
           pointRadius: 0,
           hidden: p.isSpectator,

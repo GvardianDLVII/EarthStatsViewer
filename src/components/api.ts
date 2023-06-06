@@ -43,9 +43,43 @@ export interface StatsMetric {
   values: number[];
 }
 
+export interface PlayerStatsModel {
+  displayName: string;
+  name: string,
+  isSpectator: boolean;
+  color: string;
+  team: number;
+
+  currentMoney: number[];
+  minedMoney: number[];
+  spentMoney: number[];
+  buildingsCost: number[];
+  buildingWeaponsCost: number[];
+  unitsCost: number[];
+  researchesCost: number[];
+  ammoCost: number[];
+  researchesCount: number[];
+  buildingsBuilt: number[];
+  buildingsLost: number[];
+  unitsBuilt: number[];
+  unitsLost: number[];
+  destroyedUnits: number[];
+  destroyedBuildings: number[];
+  militaryUnits: number[];
+  unitsValue: number[];
+  moneyTransferred: number[];
+  unitsCaptured: number[];
+  unitsTransferred: number[];
+  
+  moneyFlow: number[];
+  avgUnitsValue: number[];
+  killsDeaths: number[];
+  killsDeathsFiveMin: number[];
+}
+
 export interface StatsMetricModel {
   id: number;
   name: string;
   description: string;
-  getValue(gameStats: GameStats, index: number, range: number[]) : number[];
+  getValue(playerStats: PlayerStatsModel, range: number[]) : number[];
 }
