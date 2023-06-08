@@ -9,7 +9,6 @@
           <v-card-text>
             <v-file-input
               v-model="files"
-              multiple
               :density="'compact'"
               label="File input"
               variant="outlined"
