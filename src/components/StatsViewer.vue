@@ -9,15 +9,16 @@
           <v-card-text>
             <v-file-input
               v-model="files"
+              multiple
               :density="'compact'"
               label="File input"
               variant="outlined"
-              @update:model-value="readFile"
+              @update:model-value="readFiles"
               :clearable="false"
               prepend-icon=""
               class="stats-file-input"
             />
-            <v-switch v-model="teamMode" :density="'compact'" label="Team mode"></v-switch>
+            <v-switch v-model="teamMode" :density="'compact'" label="Team mode" :disabled="!statsLoaded || multipleMode"></v-switch>
             <v-virtual-scroll height="540" :items="metricTypes">
               <template v-slot:default="{ item }">
                 <v-btn
@@ -25,8 +26,9 @@
                   @click="select(item)"
                   width="100%"
                   :color="currentChart == item.id ? 'blue' : ''"
+                  :disabled="!statsLoaded"
                 >
-                    {{ item.name}}
+                  {{ item.name}}
                 </v-btn>
               </template>
             </v-virtual-scroll>
@@ -34,11 +36,12 @@
         </v-card>
       </v-col>
       <v-col sm="12" md="8" lg="9" xl="10" id="chartCol">
-        <v-card v-if="gameStats" outlined :elevation="8" class="fill-height">
-          <v-card-title class="d-flex">
-            <span>{{ gameStats.levelName }}</span>
+        <v-card v-if="statsLoaded" outlined :elevation="8" class="fill-height">
+          <v-card-title v-if="multipleMode">Multiple files selected</v-card-title>
+          <v-card-title class="d-flex" v-else>
+            <span>{{ singleStats.levelName }}</span>
             <v-spacer />
-            <span>{{ gameStats.dateTime.toLocaleString() }}</span>
+            <span>{{ singleStats.dateTime.toLocaleString() }}</span>
           </v-card-title>
           <v-divider />
           <v-card-text>
@@ -102,15 +105,60 @@ export default {
     plugin: createBackgroundPlugin(),
 
     files: [] as File[],
-    gameStats: undefined as unknown as GameStats,
+    gameStats: [] as GameStats[],
     currentChart: 1,
     teamMode: false,
     chartRange: [0, 0],
     races: {1: "UCS", 2: "ED", 3: "LC"} as any,
   }),
   computed: {
+    multipleStats(): PlayerStatsModel[] {
+      let result = [] as PlayerStatsModel[];
+      let index = 0;
+      for (let i = 0; i < this.gameStats.length; i++) {
+        for (let j = 0; j < this.gameStats[i].players.length; j++) {
+          let p = this.gameStats[i].players[j];
+          if (p.isSpectator)
+            continue;
+          result.push({
+            displayName: `[G${i+1}] ${p.name} [${this.races[p.race]}]`,
+            name: p.name,
+            isSpectator: false,
+            color: this.playerColors[index % this.playerColors.length],
+            team: index,
+
+            currentMoney: this.gameStats[i].statsData.currentMoney[j].values,
+            minedMoney: this.gameStats[i].statsData.minedMoney[j].values,
+            spentMoney: this.gameStats[i].statsData.spentMoney[j].values,
+            buildingsCost: this.gameStats[i].statsData.buildingsCost[j].values,
+            buildingWeaponsCost: this.gameStats[i].statsData.buildingWeaponsCost[j].values,
+            unitsCost: this.gameStats[i].statsData.unitsCost[j].values,
+            researchesCost: this.gameStats[i].statsData.researchesCost[j].values,
+            ammoCost: this.gameStats[i].statsData.ammoCost[j].values,
+            researchesCount: this.gameStats[i].statsData.researchesCount[j].values,
+            buildingsBuilt: this.gameStats[i].statsData.buildingsBuilt[j].values,
+            buildingsLost: this.gameStats[i].statsData.buildingsLost[j].values,
+            unitsBuilt: this.gameStats[i].statsData.unitsBuilt[j].values,
+            unitsLost: this.gameStats[i].statsData.unitsLost[j].values,
+            destroyedUnits: this.gameStats[i].statsData.destroyedUnits[j].values,
+            destroyedBuildings: this.gameStats[i].statsData.destroyedBuildings[j].values,
+            militaryUnits: this.gameStats[i].statsData.militaryUnits[j].values,
+            unitsValue: this.gameStats[i].statsData.unitsValue[j].values,
+            moneyTransferred: this.gameStats[i].statsData.moneyTransferred[j].values,
+            unitsCaptured: this.gameStats[i].statsData.unitsCaptured[j].values,
+            unitsTransferred: this.gameStats[i].statsData.unitsTransferred[j].values,
+            moneyFlow: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.minedMoney[j].values[k - 60])),
+            avgUnitsValue: this.gameStats[i].statsData.unitsValue[j].values.map((d, k) => d/this.gameStats[i].statsData.militaryUnits[j].values[k]),
+            killsDeaths: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => d/this.gameStats[i].statsData.unitsLost[j].values[k]),
+            killsDeathsFiveMin: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => (d - (k < 300 ? 0 : this.gameStats[i].statsData.destroyedUnits[j].values[k - 300]))/(this.gameStats[i].statsData.unitsLost[j].values[k] - (k < 300 ? 0 : this.gameStats[i].statsData.unitsLost[j].values[k - 300]))),
+          });
+          index++;
+        }
+      }
+      return result;
+    },
     playerStats(): PlayerStatsModel[] {
-      return this.gameStats.players.map<PlayerStatsModel>((p, i) => { 
+      return this.singleStats.players.map<PlayerStatsModel>((p, i) => { 
         return {
           displayName: `${this.teamPrefix(p)} ${p.name} [${this.races[p.race]}]`,
           name: p.name,
@@ -118,30 +166,30 @@ export default {
           color: this.playerColors[p.index],
           team: p.team,
 
-          currentMoney: this.gameStats.statsData.currentMoney[i].values,
-          minedMoney: this.gameStats.statsData.minedMoney[i].values,
-          spentMoney: this.gameStats.statsData.spentMoney[i].values,
-          buildingsCost: this.gameStats.statsData.buildingsCost[i].values,
-          buildingWeaponsCost: this.gameStats.statsData.buildingWeaponsCost[i].values,
-          unitsCost: this.gameStats.statsData.unitsCost[i].values,
-          researchesCost: this.gameStats.statsData.researchesCost[i].values,
-          ammoCost: this.gameStats.statsData.ammoCost[i].values,
-          researchesCount: this.gameStats.statsData.researchesCount[i].values,
-          buildingsBuilt: this.gameStats.statsData.buildingsBuilt[i].values,
-          buildingsLost: this.gameStats.statsData.buildingsLost[i].values,
-          unitsBuilt: this.gameStats.statsData.unitsBuilt[i].values,
-          unitsLost: this.gameStats.statsData.unitsLost[i].values,
-          destroyedUnits: this.gameStats.statsData.destroyedUnits[i].values,
-          destroyedBuildings: this.gameStats.statsData.destroyedBuildings[i].values,
-          militaryUnits: this.gameStats.statsData.militaryUnits[i].values,
-          unitsValue: this.gameStats.statsData.unitsValue[i].values,
-          moneyTransferred: this.gameStats.statsData.moneyTransferred[i].values,
-          unitsCaptured: this.gameStats.statsData.unitsCaptured[i].values,
-          unitsTransferred: this.gameStats.statsData.unitsTransferred[i].values,
-          moneyFlow: this.gameStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.gameStats.statsData.minedMoney[i].values[j - 60])),
-          avgUnitsValue: this.gameStats.statsData.unitsValue[i].values.map((d, j) => d/this.gameStats.statsData.militaryUnits[i].values[j]),
-          killsDeaths: this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => d/this.gameStats.statsData.unitsLost[i].values[j]),
-          killsDeathsFiveMin: this.gameStats.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : this.gameStats.statsData.destroyedUnits[i].values[j - 300]))/(this.gameStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.gameStats.statsData.unitsLost[i].values[j - 300]))),
+          currentMoney: this.singleStats.statsData.currentMoney[i].values,
+          minedMoney: this.singleStats.statsData.minedMoney[i].values,
+          spentMoney: this.singleStats.statsData.spentMoney[i].values,
+          buildingsCost: this.singleStats.statsData.buildingsCost[i].values,
+          buildingWeaponsCost: this.singleStats.statsData.buildingWeaponsCost[i].values,
+          unitsCost: this.singleStats.statsData.unitsCost[i].values,
+          researchesCost: this.singleStats.statsData.researchesCost[i].values,
+          ammoCost: this.singleStats.statsData.ammoCost[i].values,
+          researchesCount: this.singleStats.statsData.researchesCount[i].values,
+          buildingsBuilt: this.singleStats.statsData.buildingsBuilt[i].values,
+          buildingsLost: this.singleStats.statsData.buildingsLost[i].values,
+          unitsBuilt: this.singleStats.statsData.unitsBuilt[i].values,
+          unitsLost: this.singleStats.statsData.unitsLost[i].values,
+          destroyedUnits: this.singleStats.statsData.destroyedUnits[i].values,
+          destroyedBuildings: this.singleStats.statsData.destroyedBuildings[i].values,
+          militaryUnits: this.singleStats.statsData.militaryUnits[i].values,
+          unitsValue: this.singleStats.statsData.unitsValue[i].values,
+          moneyTransferred: this.singleStats.statsData.moneyTransferred[i].values,
+          unitsCaptured: this.singleStats.statsData.unitsCaptured[i].values,
+          unitsTransferred: this.singleStats.statsData.unitsTransferred[i].values,
+          moneyFlow: this.singleStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.minedMoney[i].values[j - 60])),
+          avgUnitsValue: this.singleStats.statsData.unitsValue[i].values.map((d, j) => d/this.singleStats.statsData.militaryUnits[i].values[j]),
+          killsDeaths: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => d/this.singleStats.statsData.unitsLost[i].values[j]),
+          killsDeathsFiveMin: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : this.singleStats.statsData.destroyedUnits[i].values[j - 300]))/(this.singleStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.singleStats.statsData.unitsLost[i].values[j - 300]))),
         };
       });
     },
@@ -183,8 +231,30 @@ export default {
         };
       });
     },
+    multipleMode(): boolean {
+      return this.files && this.files.length > 1;
+    },
+    singleStats(): GameStats {
+      return this.gameStats[0];
+    },
+    allTicks(): number[] {
+      if (!this.statsLoaded)
+        return [];
+      let maxTicks = 0;
+      for (let i = 0; i < this.gameStats.length; i++)
+        if (this.gameStats[i].statsData.ticks.length > this.gameStats[maxTicks].statsData.ticks.length)
+          maxTicks = i;
+      return this.gameStats[maxTicks].statsData.ticks;
+    },
+    statsLoaded(): boolean {
+      return this.gameStats != undefined && this.gameStats.length > 0;
+    },
     statsItems(): PlayerStatsModel[] {
-      return this.teamMode ? this.teamStats : this.playerStats;
+      return this.multipleMode
+        ? this.multipleStats
+        : this.teamMode
+          ? this.teamStats
+          : this.playerStats;
     },
     metricTypes(): StatsMetricModel[] {
       return [
@@ -215,9 +285,9 @@ export default {
       ]
     },
     chartData(): any {
-      if(!this.gameStats) return {};
+      if(!this.statsLoaded) return {};
       return {
-        labels: this.gameStats.statsData.ticks.slice(this.chartRange[0], this.chartRange[1]).map(i => new Date(i * 1000 / 20).toISOString().slice(11, 19)),
+        labels: this.allTicks.slice(this.chartRange[0], this.chartRange[1]).map(i => new Date(i * 1000 / 20).toISOString().slice(11, 19)),
         datasets: this.statsItems.map(p => ({
           label: p.displayName, 
           data: this.metricTypes.find(m => m.id == this.currentChart)?.getValue(p, this.chartRange),
@@ -233,7 +303,7 @@ export default {
       return this.metricTypes.find(m => m.id == this.currentChart)?.description;
     },
     maxRange(): number {
-      return this.gameStats ? this.gameStats.statsData.ticks.length - 1 : 0;
+      return this.statsLoaded ? this.allTicks.length - 1 : 0;
     },
     playerColors(): string[] {
       return [
@@ -257,15 +327,20 @@ export default {
     },
   },
   methods: {
-    async readFile() {
+    async readFiles() {
       if (!this.files || !this.files.length)
         return;
-      let gameStats = await readStats(this.files[0]);
-      if (gameStats == undefined)
-        return;
-      this.gameStats = gameStats;
+
+      this.gameStats = [];
+      for(let i = 0; i < this.files.length; i++)
+      {
+        let gameStats = await readStats(this.files[i]);
+        if (gameStats == undefined)
+          return;
+        this.gameStats.push(gameStats);
+      }
       this.chartRange[0] = 0;
-      this.chartRange[1] = this.gameStats.statsData.ticks.length - 1;
+      this.chartRange[1] = this.allTicks.length - 1;
     },
     teamPrefix(player: Player): string {
       if (player.isSpectator)
