@@ -1,7 +1,7 @@
 <template>
   <v-container class="fill-height">
     <v-row class="fill-height">
-      <v-col cols="2">
+      <v-col sm="12" md="4" lg="3" xl="2">
         <v-card outlined :elevation="8" class="fill-height left-panel">
           <v-img src="/logo.png"></v-img>
           <v-card-title>Stats viewer</v-card-title>
@@ -9,6 +9,7 @@
           <v-card-text>
             <v-file-input
               v-model="files"
+              multiple
               :density="'compact'"
               label="File input"
               variant="outlined"
@@ -33,7 +34,7 @@
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col id="chartCol">
+      <v-col sm="12" md="8" lg="9" xl="10" id="chartCol">
         <v-card v-if="gameStats" outlined :elevation="8" class="fill-height">
           <v-card-title class="d-flex">
             <span>{{ gameStats.levelName }}</span>
@@ -86,28 +87,28 @@ ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip,
 export default {
   components: { Line },
   data: () => ({
-      chartOptions: {
-        responsive: true,
-        animation: false,
-        interaction: {
-          intersect: false,
-          mode: "index",
+    chartOptions: {
+      responsive: true,
+      animation: false,
+      interaction: {
+        intersect: false,
+        mode: "index",
+      },
+      plugins: {
+        customCanvasBackgroundColor: {
+          color: '#c1cbe3',
         },
-        plugins: {
-          customCanvasBackgroundColor: {
-            color: '#c1cbe3',
-          },
-        },
-      } as any,
-      plugin: createBackgroundPlugin(),
+      },
+    } as any,
+    plugin: createBackgroundPlugin(),
 
-      files: [] as File[],
-      gameStats: undefined as unknown as GameStats,
-      currentChart: 1,
-      teamMode: false,
-      chartRange: [0, 0],
-      races: {1: "UCS", 2: "ED", 3: "LC"} as any,
-    }),
+    files: [] as File[],
+    gameStats: undefined as unknown as GameStats,
+    currentChart: 1,
+    teamMode: false,
+    chartRange: [0, 0],
+    races: {1: "UCS", 2: "ED", 3: "LC"} as any,
+  }),
   computed: {
     playerStats(): PlayerStatsModel[] {
       return this.gameStats.players.map<PlayerStatsModel>((p, i) => { 
