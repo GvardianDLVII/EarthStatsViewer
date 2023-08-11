@@ -104,6 +104,8 @@ export default {
           itemSort: (a: any, b: any) => {
             return b.raw - a.raw;
           },
+          position: 'average',
+          yAlign: 'center',
         },
       },
     } as any,
