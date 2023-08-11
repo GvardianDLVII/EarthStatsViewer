@@ -100,6 +100,11 @@ export default {
         customCanvasBackgroundColor: {
           color: '#c1cbe3',
         },
+        tooltip: {
+          itemSort: (a: any, b: any) => {
+            return b.raw - a.raw;
+          },
+        },
       },
     } as any,
     plugin: createBackgroundPlugin(),
