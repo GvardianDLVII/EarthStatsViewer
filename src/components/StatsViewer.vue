@@ -36,6 +36,59 @@
         </v-card>
       </v-col>
       <v-col sm="12" md="8" lg="9" xl="10" id="chartCol">
+        <v-card v-if="statsLoaded && !multipleMode" :elevation="8" class="fill-height">
+          <v-tabs v-model="tab">
+            <v-tab v-for="player in singleStats.players.filter(p => !p.isSpectator)" :value="player.index">{{ player.name }}</v-tab>
+          </v-tabs>
+          <v-card-text>
+            <v-tabs-window v-model="tab">
+              <v-tabs-window-item v-for="player in singleStats.players.filter(p => !p.isSpectator)" :value="player.index">
+                <v-expansion-panels>
+                  <v-expansion-panel
+                    v-for="unit in singleStats.damageStats?.players[player.index].units"
+                    :key="unit.identity"
+                  >
+                    <v-expansion-panel-title>
+                      <template v-slot:default="{ expanded }">
+                        <shield-value-display :value="singleStats.damageStats?.identities[unit.identity].powerShield" />
+                        {{ singleStats.damageStats?.identities[unit.identity].chassis }}
+                        <span v-for="i in 8">
+                          <span class="ml-3" v-if="singleStats.damageStats?.identities[unit.identity].weapons[i-1]"> {{ singleStats.damageStats?.identities[unit.identity].weapons[i-1] }} </span>
+                        </span>
+                      </template>
+                    </v-expansion-panel-title>
+                    <v-expansion-panel-text>
+                      <v-row>
+                        <v-col cols="4">Total damage given</v-col>
+                        <v-col cols="8"> {{ calcUnitDamage(unit) + calcBuildingDamage(unit) }} </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="4">Damage given to units</v-col>
+                        <v-col cols="8"> {{ calcUnitDamage(unit) }} </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="4">Damage given to buildings</v-col>
+                        <v-col cols="8"> {{ calcBuildingDamage(unit) }} </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="4">Total kills</v-col>
+                        <v-col cols="8"> {{ calcUnitsKilled(unit) + calcBuildingsKilled(unit) }} </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="4">Units killed</v-col>
+                        <v-col cols="8"> {{ calcUnitsKilled(unit) }} </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="4">Buildings killed</v-col>
+                        <v-col cols="8"> {{ calcBuildingsKilled(unit) }} </v-col>
+                      </v-row>
+                    </v-expansion-panel-text>
+                  </v-expansion-panel>
+                </v-expansion-panels>
+              </v-tabs-window-item>
+            </v-tabs-window>
+          </v-card-text>
+        </v-card>
         <v-card v-if="statsLoaded" outlined :elevation="8" class="fill-height">
           <v-card-title v-if="multipleMode">Multiple files selected</v-card-title>
           <v-card-title class="d-flex" v-else>
@@ -80,14 +133,15 @@
 <script lang="ts">
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend } from 'chart.js'
-import { GameStats, Player, PlayerStatsModel, StatsMetricModel } from './api';
+import { GameStats, Player, PlayerStatsModel, StatsMetricModel, UnitStats } from './api';
 import { createBackgroundPlugin } from '@/plugins/chartjs';
 import { readStats } from './statsReader';
+import ShieldValueDisplay from './ShieldValueDisplay.vue';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend);
 
 export default {
-  components: { Line },
+  components: { Line, ShieldValueDisplay },
   data: () => ({
     chartOptions: {
       responsive: true,
@@ -117,6 +171,7 @@ export default {
     teamMode: false,
     chartRange: [0, 0],
     races: {1: "UCS", 2: "ED", 3: "LC"} as any,
+    tab: 0,
   }),
   computed: {
     multipleStats(): PlayerStatsModel[] {
@@ -154,6 +209,8 @@ export default {
             moneyTransferred: this.gameStats[i].statsData.moneyTransferred[j].values,
             unitsCaptured: this.gameStats[i].statsData.unitsCaptured[j].values,
             unitsTransferred: this.gameStats[i].statsData.unitsTransferred[j].values,
+            damageDealt: this.gameStats[i].statsData.damageDealt[j].values,
+            damageReceived: this.gameStats[i].statsData.damageReceived[j].values,
             moneyFlow: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.minedMoney[j].values[k - 60])),
             avgUnitsValue: this.gameStats[i].statsData.unitsValue[j].values.map((d, k) => d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
             killsDeaths: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => d/(this.gameStats[i].statsData.unitsLost[j].values[k] ? this.gameStats[i].statsData.unitsLost[j].values[k] : 1)),
@@ -193,6 +250,8 @@ export default {
           moneyTransferred: this.singleStats.statsData.moneyTransferred[i].values,
           unitsCaptured: this.singleStats.statsData.unitsCaptured[i].values,
           unitsTransferred: this.singleStats.statsData.unitsTransferred[i].values,
+          damageDealt: this.singleStats.statsData.damageDealt[i].values,
+          damageReceived: this.singleStats.statsData.damageReceived[i].values,
           moneyFlow: this.singleStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.minedMoney[i].values[j - 60])),
           avgUnitsValue: this.singleStats.statsData.unitsValue[i].values.map((d, j) => d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
           killsDeaths: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => d/(this.singleStats.statsData.unitsLost[i].values[j] ? this.singleStats.statsData.unitsLost[i].values[j] : 1)),
@@ -231,6 +290,8 @@ export default {
           moneyTransferred: teamPlayers[0].moneyTransferred.map((_v, i) => teamPlayers.map(tp => tp.moneyTransferred[i]).reduce((s, a) => s + a, 0)),
           unitsCaptured: teamPlayers[0].unitsCaptured.map((_v, i) => teamPlayers.map(tp => tp.unitsCaptured[i]).reduce((s, a) => s + a, 0)),
           unitsTransferred: teamPlayers[0].unitsTransferred.map((_v, i) => teamPlayers.map(tp => tp.unitsTransferred[i]).reduce((s, a) => s + a, 0)),
+          damageDealt: teamPlayers[0].damageDealt.map((_v, i) => teamPlayers.map(tp => tp.damageDealt[i]).reduce((s, a) => s + a, 0)),
+          damageReceived: teamPlayers[0].damageReceived.map((_v, i) => teamPlayers.map(tp => tp.damageReceived[i]).reduce((s, a) => s + a, 0)),
           moneyFlow: teamPlayers[0].moneyFlow.map((_v, i) => teamPlayers.map(tp => tp.moneyFlow[i]).reduce((s, a) => s + a, 0)),
           avgUnitsValue: teamPlayers[0].avgUnitsValue.map((_v, i) => teamPlayers.map(tp => tp.unitsValue[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
           killsDeaths: teamPlayers[0].killsDeaths.map((_v, i) => teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) : 1),
@@ -289,6 +350,8 @@ export default {
         { id: 20, name: "K/D 5min", description: "Destroyed to lost ratio of units in timespan of previous 5 minutes", getValue: (p, range) => { return p.killsDeathsFiveMin.slice(range[0], range[1]); }},
         { id: 23, name: "Units captured", description: "Number of units captured", getValue: (p, range) => { return p.unitsCaptured.slice(range[0], range[1]); }},
         { id: 24, name: "Units received", description: "Number of units received from allies", getValue: (p, range) => { return p.unitsTransferred.slice(range[0], range[1]); }},
+        { id: 25, name: "Damage dealt", description: "Total amount of damage given", getValue: (p, range) => { return p.damageDealt.slice(range[0], range[1]); }},
+        { id: 26, name: "Damage received", description: "Total amount of damage received", getValue: (p, range) => { return p.damageReceived.slice(range[0], range[1]); }},
       ]
     },
     chartData(): any {
@@ -356,6 +419,38 @@ export default {
     },
     select(item :StatsMetricModel): void {
       this.currentChart = item.id;
+    },
+    calcUnitDamage(unit: UnitStats): number {
+      let dmg = 0;
+      for (let i = 0; i < 8; i++) {
+        for (const [key, value] of Object.entries(unit.weapons[i].unitsDamage)) {
+          dmg += value;
+        }
+      }
+      return dmg;
+    },
+    calcBuildingDamage(unit: UnitStats): number {
+      let dmg = 0;
+      for (let i = 0; i < 8; i++) {
+        dmg += unit.weapons[i].buildingDamage;
+      }
+      return dmg;
+    },
+    calcUnitsKilled(unit: UnitStats): number {
+      let dmg = 0;
+      for (let i = 0; i < 8; i++) {
+        for (const [key, value] of Object.entries(unit.weapons[i].unitsKilled)) {
+          dmg += value;
+        }
+      }
+      return dmg;
+    },
+    calcBuildingsKilled(unit: UnitStats): number {
+      let dmg = 0;
+      for (let i = 0; i < 8; i++) {
+        dmg += unit.weapons[i].buildingsKilled;
+      }
+      return dmg;
     },
   },
 }

@@ -1,4 +1,4 @@
-import { GameStats, Player, StatsMetric } from "./api";
+import { GameStats, Player, PlayerDamageStats, StatsMetric, UnitStats, UnitTemplate, WeaponStats } from "./api";
 
 export async function readStats(file: File): Promise<GameStats | undefined> {
   let buffer = await file.arrayBuffer();
@@ -6,7 +6,7 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
   let offset = 0;
   let fileApiVersion = dv.getUint32(offset, true);
   offset += 4;
-  if (fileApiVersion > 1)
+  if (fileApiVersion > 2)
     return undefined; //todo: return Error
   let levelNameLength = dv.getUint32(offset, true);
   offset += 4;
@@ -58,6 +58,8 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
       moneyTransferred: players.map<StatsMetric>(p => ({ values: [] })),
       unitsCaptured: players.map<StatsMetric>(p => ({ values: [] })),
       unitsTransferred: players.map<StatsMetric>(p => ({ values: [] })),
+      damageDealt: players.map<StatsMetric>(p => ({ values: [] })),
+      damageReceived: players.map<StatsMetric>(p => ({ values: [] })),
     },
   };
 
@@ -120,11 +122,22 @@ function readLine(gameStats: GameStats, dv: DataView, offset: number): number {
     localOffset += 2;
     gameStats.statsData.unitsTransferred[i].values.push(dv.getUint16(offset + localOffset, true));
     localOffset += 2;
+    if (gameStats.apiVersion >= 2) {
+      gameStats.statsData.damageDealt[i].values.push(dv.getUint32(offset + localOffset, true));
+      localOffset += 4;
+      gameStats.statsData.damageReceived[i].values.push(dv.getUint32(offset + localOffset, true));
+      localOffset += 4;
+    }
+    else {
+      gameStats.statsData.damageDealt[i].values.push(0);
+      gameStats.statsData.damageReceived[i].values.push(0);
+    }
   }
   return localOffset;
 }
 
 function readFooter(gameStats: GameStats, dv: DataView, offset: number): number {
+  let localOffset = 0;
   let allianceMasks = [] as number[];
   for (let i = 0; i < 16; i++) {
     allianceMasks.push(dv.getUint16(offset + i * 2, true));
@@ -137,7 +150,155 @@ function readFooter(gameStats: GameStats, dv: DataView, offset: number): number 
       index = index << 1;
     }
   }
-  return 32;
+  localOffset += 32;
+  if (gameStats.apiVersion < 2)
+    return localOffset;
+
+  let identities = [] as UnitTemplate[];
+  let identitiesCount = dv.getUint32(offset + localOffset, true);
+  localOffset += 4;
+  for (let i = 0; i < identitiesCount; i++) {
+    let playerIndex = dv.getUint32(offset + localOffset, true);
+    localOffset += 4;
+    let chassisNameLength = dv.getUint32(offset + localOffset, true);
+    localOffset += 4;
+    let chassisName = new TextDecoder("utf-8").decode(new Uint8Array(dv.buffer.slice(offset + localOffset, offset + localOffset + chassisNameLength)));
+    localOffset += chassisNameLength;
+    let powerShield = dv.getInt32(offset + localOffset, true);
+    localOffset += 4;
+    let weapons = [] as string[];
+    for (let j = 0; j < 8; j++) {
+      let weaponNameLength = dv.getInt32(offset + localOffset, true);
+      localOffset += 4;
+      if (weaponNameLength == -1) {
+        weapons.push('');
+        continue;
+      }
+      weapons.push(new TextDecoder("utf-8").decode(new Uint8Array(dv.buffer.slice(offset + localOffset, offset + localOffset + weaponNameLength))));
+      localOffset += weaponNameLength;
+    }
+    identities.push({
+      playerIndex: playerIndex,
+      chassis: chassisName,
+      powerShield: powerShield,
+      weapons: weapons
+    });
+  }
+
+  let players = [] as PlayerDamageStats[];
+  for (let i = 0; i < 16; i++) {
+    let units = [] as UnitStats[];
+    let unitsCount = dv.getUint32(offset + localOffset, true);
+    localOffset += 4;
+    for (let j = 0; j < unitsCount; j++) {
+      let idIndex = dv.getUint32(offset + localOffset, true);
+      localOffset += 4;
+      
+      let weapons = [] as WeaponStats[];
+      for (let k = 0; k < 8; k++) {
+        let buildingDamage = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        let buildingsKilled = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        let unitsDamageMapSize = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        let damageMap = {} as any;
+        for (let l = 0; l < unitsDamageMapSize; l++) {
+          let targetId = dv.getUint32(offset + localOffset, true);
+          localOffset += 4;
+          let damage = dv.getUint32(offset + localOffset, true);
+          localOffset += 4;
+          damageMap[targetId] = damage;
+        }
+        let unitsKilledMapSize = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        let killsMap = {} as any;
+        for (let l = 0; l < unitsKilledMapSize; l++) {
+          let targetId = dv.getUint32(offset + localOffset, true);
+          localOffset += 4;
+          let kills = dv.getUint32(offset + localOffset, true);
+          localOffset += 4;
+          killsMap[targetId] = kills;
+        }
+        weapons.push({
+          buildingDamage: buildingDamage,
+          buildingsKilled: buildingsKilled,
+          unitsDamage: damageMap,
+          unitsKilled: killsMap
+        });
+      }
+      let damageByUnitsMapSize = dv.getUint32(offset + localOffset, true);
+      localOffset += 4;
+      let damageByUnitsMap = {} as any;
+      for (let l = 0; l < damageByUnitsMapSize; l++) {
+        let instigatorId = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        let damage = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        damageByUnitsMap[instigatorId] = damage;
+      }
+      let killedByUnitsMapSize = dv.getUint32(offset + localOffset, true);
+      localOffset += 4;
+      let killedByUnitsMap = {} as any;
+      for (let l = 0; l < killedByUnitsMapSize; l++) {
+        let instigatorId = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        let kills = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        killedByUnitsMap[instigatorId] = kills;
+      }
+      let damageByBuildings = dv.getUint32(offset + localOffset, true);
+      localOffset += 4;
+      let killedByBuildings = dv.getUint32(offset + localOffset, true);
+      localOffset += 4;
+
+      let damageByAmmoMapSize = dv.getUint32(offset + localOffset, true);
+      localOffset += 4;
+      let damageByAmmoMap = {} as any;
+      for (let l = 0; l < damageByAmmoMapSize; l++) {
+        let ammoNameLength = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        let ammoName = new TextDecoder("utf-8").decode(new Uint8Array(dv.buffer.slice(offset + localOffset, offset + localOffset + ammoNameLength)));
+        localOffset += ammoNameLength;
+        let damage = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        damageByAmmoMap[ammoName] = damage;
+      }
+      let killedByAmmoMapSize = dv.getUint32(offset + localOffset, true);
+      localOffset += 4;
+      let killedByAmmoMap = {} as any;
+      for (let l = 0; l < killedByAmmoMapSize; l++) {
+        let ammoNameLength = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        let ammoName = new TextDecoder("utf-8").decode(new Uint8Array(dv.buffer.slice(offset + localOffset, offset + localOffset + ammoNameLength)));
+        localOffset += ammoNameLength;
+        let kills = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        killedByAmmoMap[ammoName] = kills;
+      }
+
+      units.push({
+        identity: idIndex,
+        weapons: weapons,
+        damageByUnits: damageByUnitsMap,
+        killedByUnits: killedByUnitsMap,
+        damageByBuildings: damageByBuildings,
+        killedByBuildings: killedByBuildings,
+        damageByAmmo: damageByAmmoMap,
+        killedByAmmo: killedByAmmoMap,
+      });
+    }
+    players.push({
+      units: units,
+    });
+  }
+
+  gameStats.damageStats = {
+    identities: identities,
+    players: players,
+  };
+
+  return localOffset;
 }
 
 function recalculateTeams(gameStats: GameStats): void {

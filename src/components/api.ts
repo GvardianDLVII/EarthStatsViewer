@@ -4,6 +4,8 @@ export interface GameStats {
   dateTime: Date;
   players: Player[];
   statsData: StatsData;
+
+  damageStats?: DamageStats;
 }
 
 export interface Player {
@@ -37,6 +39,8 @@ export interface StatsData {
   moneyTransferred: StatsMetric[];
   unitsCaptured: StatsMetric[];
   unitsTransferred: StatsMetric[];
+  damageDealt: StatsMetric[];
+  damageReceived: StatsMetric[];
 }
 
 export interface StatsMetric {
@@ -70,6 +74,8 @@ export interface PlayerStatsModel {
   moneyTransferred: number[];
   unitsCaptured: number[];
   unitsTransferred: number[];
+  damageDealt: number[];
+  damageReceived: number[];
   
   moneyFlow: number[];
   avgUnitsValue: number[];
@@ -82,4 +88,38 @@ export interface StatsMetricModel {
   name: string;
   description: string;
   getValue(playerStats: PlayerStatsModel, range: number[]) : number[];
+}
+
+export interface UnitTemplate {
+  playerIndex: number;
+  chassis: string;
+  powerShield: number;
+  weapons: string[];
+}
+
+export interface WeaponStats {
+  buildingDamage: number;
+  buildingsKilled: number;
+  unitsDamage: object;
+  unitsKilled: object;
+}
+
+export interface UnitStats {
+  identity: number;
+  weapons: WeaponStats[];
+  damageByUnits: object;
+  killedByUnits: object;
+  damageByBuildings: number;
+  killedByBuildings: number;
+  damageByAmmo: object;
+  killedByAmmo: object;
+}
+
+export interface PlayerDamageStats {
+  units: UnitStats[];
+}
+
+export interface DamageStats {
+  identities: UnitTemplate[];
+  players: PlayerDamageStats[];
 }
