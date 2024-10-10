@@ -48,40 +48,13 @@
                     v-for="unit in singleStats.damageStats?.players[player.index].units"
                     :key="unit.identity"
                   >
-                    <v-expansion-panel-title>
+                    <v-expansion-panel-title class="unit-stats-header">
                       <template v-slot:default="{ expanded }">
-                        <shield-value-display :value="singleStats.damageStats?.identities[unit.identity].powerShield" />
-                        {{ singleStats.damageStats?.identities[unit.identity].chassis }}
-                        <span v-for="i in 8">
-                          <span class="ml-3" v-if="singleStats.damageStats?.identities[unit.identity].weapons[i-1]"> {{ singleStats.damageStats?.identities[unit.identity].weapons[i-1] }} </span>
-                        </span>
+                        <unit-stats-header :template="singleStats.damageStats.identities[unit.identity]" />
                       </template>
                     </v-expansion-panel-title>
                     <v-expansion-panel-text>
-                      <v-row>
-                        <v-col cols="4">Total damage given</v-col>
-                        <v-col cols="8"> {{ calcUnitDamage(unit) + calcBuildingDamage(unit) }} </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="4">Damage given to units</v-col>
-                        <v-col cols="8"> {{ calcUnitDamage(unit) }} </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="4">Damage given to buildings</v-col>
-                        <v-col cols="8"> {{ calcBuildingDamage(unit) }} </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="4">Total kills</v-col>
-                        <v-col cols="8"> {{ calcUnitsKilled(unit) + calcBuildingsKilled(unit) }} </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="4">Units killed</v-col>
-                        <v-col cols="8"> {{ calcUnitsKilled(unit) }} </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="4">Buildings killed</v-col>
-                        <v-col cols="8"> {{ calcBuildingsKilled(unit) }} </v-col>
-                      </v-row>
+                      <unit-stats-display :template="singleStats.damageStats.identities[unit.identity]" :unit="unit" :stats="singleStats" />
                     </v-expansion-panel-text>
                   </v-expansion-panel>
                 </v-expansion-panels>
@@ -136,12 +109,13 @@ import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement
 import { GameStats, Player, PlayerStatsModel, StatsMetricModel, UnitStats } from './api';
 import { createBackgroundPlugin } from '@/plugins/chartjs';
 import { readStats } from './statsReader';
-import ShieldValueDisplay from './ShieldValueDisplay.vue';
+import UnitStatsHeader from './UnitStatsHeader.vue';
+import UnitStatsDisplay from './UnitStatsDisplay.vue';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend);
 
 export default {
-  components: { Line, ShieldValueDisplay },
+  components: { Line, UnitStatsHeader, UnitStatsDisplay },
   data: () => ({
     chartOptions: {
       responsive: true,
@@ -420,38 +394,6 @@ export default {
     select(item :StatsMetricModel): void {
       this.currentChart = item.id;
     },
-    calcUnitDamage(unit: UnitStats): number {
-      let dmg = 0;
-      for (let i = 0; i < 8; i++) {
-        for (const [key, value] of Object.entries(unit.weapons[i].unitsDamage)) {
-          dmg += value;
-        }
-      }
-      return dmg;
-    },
-    calcBuildingDamage(unit: UnitStats): number {
-      let dmg = 0;
-      for (let i = 0; i < 8; i++) {
-        dmg += unit.weapons[i].buildingDamage;
-      }
-      return dmg;
-    },
-    calcUnitsKilled(unit: UnitStats): number {
-      let dmg = 0;
-      for (let i = 0; i < 8; i++) {
-        for (const [key, value] of Object.entries(unit.weapons[i].unitsKilled)) {
-          dmg += value;
-        }
-      }
-      return dmg;
-    },
-    calcBuildingsKilled(unit: UnitStats): number {
-      let dmg = 0;
-      for (let i = 0; i < 8; i++) {
-        dmg += unit.weapons[i].buildingsKilled;
-      }
-      return dmg;
-    },
   },
 }
 
@@ -464,5 +406,9 @@ export default {
   .stats-file-input .v-field__input {
     font-size: 13px;
     line-height: 24px;
+  }
+
+  .unit-stats-header {
+    background-color: #eaf3f6;
   }
 </style>

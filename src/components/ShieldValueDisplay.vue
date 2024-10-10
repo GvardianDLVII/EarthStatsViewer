@@ -1,12 +1,18 @@
 <template>
-    <div class="shield-display">
-        <span v-if="value == -1">
-            <v-icon size="x-small" icon="mdi-shield" color="red"/>
+  <div class="shield-display">
+    <v-tooltip v-if="value == -1" :text="$t('common.shields.noShield')" location="bottom">
+      <template v-slot:activator="{ props }">
+        <v-icon v-bind="props" size="x-small" icon="mdi-shield-remove" color="red"/>
+      </template>
+    </v-tooltip>
+    <v-tooltip v-else :text="shieldName" location="bottom">
+      <template v-slot:activator="{ props }">
+        <span v-bind="props">
+          <v-icon size="x-small" v-for="i in (value + 1)" icon="mdi-shield" color="blue"/>
         </span>
-        <span v-else>
-            <v-icon size="x-small" v-for="i in (value + 1)" icon="mdi-shield" color="blue"/>
-        </span>
-    </div>
+      </template>
+    </v-tooltip>
+  </div>
 </template>
 
 <script lang="ts">
@@ -16,6 +22,16 @@ export default {
         value: {type: Number, required: true },
     },
     data: () => ({}),
+    computed: {
+      shieldName() {
+        if (this.value == 0)
+          return this.$t('common.shields.smallShield')
+        if (this.value == 1)
+          return this.$t('common.shields.mediumShield')
+        if (this.value == 2)
+          return this.$t('common.shields.largeShield')
+      }
+    }
 }
 </script>
 
