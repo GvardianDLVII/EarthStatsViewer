@@ -2,14 +2,14 @@
   <div>
     <v-toolbar flat color="transparent" class="d-flex">
       <v-toolbar-title> {{ $t("unitStats.playerStats.title") }} </v-toolbar-title>
-      <v-switch class="ml-4 d-flex" v-model="groupChassis" :density="'compact'" :label="$t('unitStats.playerStats.groupChassis')" color="primary" />
+      <v-switch class="ml-4 d-flex" v-model="groupChassis" :density="'compact'" :label="$t('unitStats.playerStats.groupChassis')" color="primary" @update:model-value="onFiltersChanged" />
       <v-spacer />
-      <v-switch class="ml-4 d-flex" v-model="groupWeapons" :density="'compact'" :label="$t('unitStats.playerStats.groupWeapons')" color="primary" />
+      <v-switch class="ml-4 d-flex" v-model="groupWeapons" :density="'compact'" :label="$t('unitStats.playerStats.groupWeapons')" color="primary" @update:model-value="onFiltersChanged" />
       <v-spacer />
-      <v-switch class="ml-4 d-flex" v-model="groupShields" :density="'compact'" :label="$t('unitStats.playerStats.groupShields')" color="primary" />
+      <v-switch class="ml-4 d-flex" v-model="groupShields" :density="'compact'" :label="$t('unitStats.playerStats.groupShields')" color="primary" @update:model-value="onFiltersChanged" />
       <v-spacer />
     </v-toolbar>
-    <v-expansion-panels>
+    <v-expansion-panels v-model="selection">
       <v-expansion-panel
         v-for="unit in items"
         :key="unit.stats.identity"
@@ -49,6 +49,7 @@ export default {
     groupChassis: true,
     groupWeapons: true,
     groupShields: true,
+    selection: undefined,
   }),
   computed: {
     items(): StatsRow[] {
@@ -157,6 +158,11 @@ export default {
       });
 
       return result;
+    },
+  },
+  methods: {
+    onFiltersChanged() {
+      this.selection = undefined;
     },
   },
 }
