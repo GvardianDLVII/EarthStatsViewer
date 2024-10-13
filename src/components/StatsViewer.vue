@@ -4,13 +4,24 @@
       <v-col sm="12" md="4" lg="3" xl="2">
         <v-card outlined :elevation="8" class="fill-height left-panel">
           <v-img src="/logo.png"></v-img>
-          <v-card-title>Stats viewer</v-card-title>
+          <v-card-title class="d-flex align-center">
+            <span>Stats viewer</span>
+            <v-spacer />
+            <v-switch
+              v-model="darkTheme"
+              color="primary"
+              density="compact"
+              @update:model-value="updateTheme"
+              hide-details
+            ></v-switch>
+            <v-icon class="ml-2" icon="mdi-weather-night" :color="darkTheme ? 'primary' : ''" />
+          </v-card-title>
           <v-divider />
           <v-card-text>
             <v-file-input
               v-model="files"
               multiple
-              :density="'compact'"
+              density="compact"
               label="File input"
               variant="outlined"
               @update:model-value="readFiles"
@@ -18,51 +29,40 @@
               prepend-icon=""
               class="stats-file-input"
             />
-            <v-switch v-model="teamMode" :density="'compact'" label="Team mode" :disabled="!statsLoaded || multipleMode"></v-switch>
-            <v-virtual-scroll height="540" :items="metricTypes">
-              <template v-slot:default="{ item }">
-                <v-btn
-                  variant="outlined"
-                  @click="select(item)"
-                  width="100%"
-                  :color="currentChart == item.id ? 'blue' : ''"
-                  :disabled="!statsLoaded"
-                >
-                  {{ item.name}}
-                </v-btn>
-              </template>
-            </v-virtual-scroll>
+            <v-switch v-model="showDetails" density="compact" label="Show details" :disabled="!canViewDetails" hide-details color="primary"></v-switch>
+            <div v-if="!canViewDetails || !showDetails">
+              <v-switch v-model="teamMode" density="compact" label="Team mode" :disabled="!statsLoaded || multipleMode" hide-details color="primary"></v-switch>
+              <v-virtual-scroll height="520" :items="metricTypes">
+                <template v-slot:default="{ item }">
+                  <v-btn
+                    variant="outlined"
+                    @click="select(item)"
+                    width="100%"
+                    :color="currentChart == item.id ? 'blue' : ''"
+                    :disabled="!statsLoaded"
+                  >
+                    {{ item.name}}
+                  </v-btn>
+                </template>
+              </v-virtual-scroll>
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
       <v-col sm="12" md="8" lg="9" xl="10" id="chartCol">
-        <v-card v-if="statsLoaded && !multipleMode" :elevation="8" class="fill-height">
+        <v-card v-if="statsLoaded && !multipleMode && showDetails" :elevation="8" class="fill-height">
           <v-tabs v-model="tab">
-            <v-tab v-for="player in singleStats.players.filter(p => !p.isSpectator)" :value="player.index">{{ player.name }}</v-tab>
+            <v-tab v-for="player in singleStats.players.filter(p => !p.isSpectator)" :value="player.index"> <player-label :index="player.index" :name="player.name" />{{ player.name }}</v-tab>
           </v-tabs>
           <v-card-text>
             <v-tabs-window v-model="tab">
               <v-tabs-window-item v-for="player in singleStats.players.filter(p => !p.isSpectator)" :value="player.index">
-                <v-expansion-panels>
-                  <v-expansion-panel
-                    v-for="unit in singleStats.damageStats?.players[player.index].units"
-                    :key="unit.identity"
-                  >
-                    <v-expansion-panel-title class="unit-stats-header">
-                      <template v-slot:default="{ expanded }">
-                        <unit-stats-header :template="singleStats.damageStats.identities[unit.identity]" />
-                      </template>
-                    </v-expansion-panel-title>
-                    <v-expansion-panel-text>
-                      <unit-stats-display :template="singleStats.damageStats.identities[unit.identity]" :unit="unit" :stats="singleStats" />
-                    </v-expansion-panel-text>
-                  </v-expansion-panel>
-                </v-expansion-panels>
+                <player-stats :player-index="player.index" :stats="singleStats" />
               </v-tabs-window-item>
             </v-tabs-window>
           </v-card-text>
         </v-card>
-        <v-card v-if="statsLoaded" outlined :elevation="8" class="fill-height">
+        <v-card v-else-if="statsLoaded" outlined :elevation="8" class="fill-height">
           <v-card-title v-if="multipleMode">Multiple files selected</v-card-title>
           <v-card-title class="d-flex" v-else>
             <span>{{ singleStats.levelName }}</span>
@@ -110,12 +110,16 @@ import { GameStats, Player, PlayerStatsModel, StatsMetricModel, UnitStats } from
 import { createBackgroundPlugin } from '@/plugins/chartjs';
 import { readStats } from './statsReader';
 import UnitStatsHeader from './UnitStatsHeader.vue';
-import UnitStatsDisplay from './UnitStatsDisplay.vue';
+import { playerColors } from '@/code/common';
+import PlayerLabel from './PlayerLabel.vue';
+import PlayerStats from './PlayerStats.vue';
+import { ThemeInstance } from 'vuetify'
+import { PropType } from 'vue';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend);
 
 export default {
-  components: { Line, UnitStatsHeader, UnitStatsDisplay },
+  components: { Line, UnitStatsHeader, PlayerLabel, PlayerStats },
   data: () => ({
     chartOptions: {
       responsive: true,
@@ -145,8 +149,13 @@ export default {
     teamMode: false,
     chartRange: [0, 0],
     races: {1: "UCS", 2: "ED", 3: "LC"} as any,
+    showDetails: false,
+    darkTheme: true,
     tab: 0,
   }),
+  props: {
+    theme: {type: Object as PropType<ThemeInstance>, required: true },
+  },
   computed: {
     multipleStats(): PlayerStatsModel[] {
       let result = [] as PlayerStatsModel[];
@@ -160,7 +169,7 @@ export default {
             displayName: `[G${i+1}] ${p.name} [${this.races[p.race]}]`,
             name: p.name,
             isSpectator: false,
-            color: this.playerColors[index % this.playerColors.length],
+            color: playerColors[index % playerColors.length],
             team: index,
 
             currentMoney: this.gameStats[i].statsData.currentMoney[j].values,
@@ -201,7 +210,7 @@ export default {
           displayName: `${this.teamPrefix(p)} ${p.name} [${this.races[p.race]}]`,
           name: p.name,
           isSpectator: p.isSpectator,
-          color: this.playerColors[p.index],
+          color: playerColors[p.index],
           team: p.team,
 
           currentMoney: this.singleStats.statsData.currentMoney[i].values,
@@ -349,25 +358,8 @@ export default {
     maxRange(): number {
       return this.statsLoaded ? this.allTicks.length - 1 : 0;
     },
-    playerColors(): string[] {
-      return [
-        "#FFFF3C",
-        "#FF423D",
-        "#3CFF4B",
-        "#3C43FF",
-        "#FF9E3C",
-        "#5DFFFF",
-        "#E51B5F",
-        "#EF3CFF",
-        "#FFFFFF",
-        "#AAAAAA",
-        "#585858",
-        "#B0AE2F",
-        "#FFE79E",
-        "#E0FFD0",
-        "#FFE4FF",
-        "#B7BBFF",
-      ]
+    canViewDetails(): boolean {
+      return this.statsLoaded && !this.multipleMode && this.gameStats[0].apiVersion > 1;
     },
   },
   methods: {
@@ -376,6 +368,8 @@ export default {
         return;
 
       this.gameStats = [];
+      this.showDetails = false;
+      this.teamMode = false;
       for(let i = 0; i < this.files.length; i++)
       {
         let gameStats = await readStats(this.files[i]);
@@ -394,6 +388,9 @@ export default {
     select(item :StatsMetricModel): void {
       this.currentChart = item.id;
     },
+    updateTheme() {
+      this.theme.global.name.value = this.darkTheme ? 'dark' : 'light'
+    }
   },
 }
 
@@ -406,9 +403,5 @@ export default {
   .stats-file-input .v-field__input {
     font-size: 13px;
     line-height: 24px;
-  }
-
-  .unit-stats-header {
-    background-color: #eaf3f6;
   }
 </style>

@@ -18,20 +18,20 @@
 <script lang="ts">
 
 export default {
-    props: {
-        value: {type: Number, required: true },
-    },
-    data: () => ({}),
-    computed: {
-      shieldName() {
-        if (this.value == 0)
-          return this.$t('common.shields.smallShield')
-        if (this.value == 1)
-          return this.$t('common.shields.mediumShield')
-        if (this.value == 2)
-          return this.$t('common.shields.largeShield')
-      }
+  props: {
+    value: {type: Number, required: true },
+  },
+  data: () => ({}),
+  computed: {
+    shieldName() {
+      if (this.value == 0)
+        return this.$t('common.shields.smallShield')
+      if (this.value == 1)
+        return this.$t('common.shields.mediumShield')
+      if (this.value == 2)
+        return this.$t('common.shields.largeShield')
     }
+  }
 }
 </script>
 

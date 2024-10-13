@@ -4,20 +4,23 @@
       <v-toolbar-title> {{ $t("unitStats.weaponsTable.title") }} </v-toolbar-title>
     </v-toolbar>
     <v-data-table :items="items" :headers="headers" density="compact" itemsPerPage="-1" hideDefaultFooter>
+      <template v-slot:item.index="{ value }">
+        {{ toSlotDisplay(value) }}
+      </template>
       <template v-slot:item.weapon="{ value }">
         {{ $t(`objectNames.weapons.full.${value}`) }}
       </template>
       <template v-slot:item.damageDealt="{ value }">
-        {{ value }}&nbsp;<span class="text-medium-emphasis" v-if="totalUnitDamage">({{formatNumber(100 * value / totalUnitDamage)}}%)</span>
+        {{ formatDamage(value) }}&nbsp;<span class="text-medium-emphasis" v-if="totalUnitDamage">({{formatDecimal(100 * value / totalUnitDamage)}}%)</span>
       </template>
       <template v-slot:item.kills="{ value }">
-        {{ value }}&nbsp;<span class="text-medium-emphasis" v-if="totalUnitKills">({{formatNumber(100 * value / totalUnitKills)}}%)</span>
+        {{ formatInt(value) }}&nbsp;<span class="text-medium-emphasis" v-if="totalUnitKills">({{formatDecimal(100 * value / totalUnitKills)}}%)</span>
       </template>
       <template v-slot:item.buildingDamage="{ value }">
-        {{ value }}&nbsp;<span class="text-medium-emphasis" v-if="totalBuildingDamage">({{formatNumber(100 * value / totalBuildingDamage)}}%)</span>
+        {{ formatDamage(value) }}&nbsp;<span class="text-medium-emphasis" v-if="totalBuildingDamage">({{formatDecimal(100 * value / totalBuildingDamage)}}%)</span>
       </template>
       <template v-slot:item.buildingsKilled="{ value }">
-        {{ value }}&nbsp;<span class="text-medium-emphasis" v-if="totalBuildingsKilled">({{formatNumber(100 * value / totalBuildingsKilled)}}%)</span>
+        {{ formatInt(value) }}&nbsp;<span class="text-medium-emphasis" v-if="totalBuildingsKilled">({{formatDecimal(100 * value / totalBuildingsKilled)}}%)</span>
       </template>
     </v-data-table>
   </div>
@@ -27,6 +30,7 @@
 import { PropType } from 'vue';
 import { GameStats, UnitStats, UnitTemplate } from './api';
 import UnitStatsHeader from './UnitStatsHeader.vue';
+import { formatDamage, formatDecimal, formatInt } from '@/code/common';
 
 interface StatsRow {
   index: number;
@@ -99,6 +103,7 @@ export default {
     },
     headers(): any {
       return [
+        { key: "index", title: this.$t("unitStats.weaponsTable.headers.slot") },
         { key: "weapon", title: this.$t("unitStats.weaponsTable.headers.weapon"), sortable: false },
         { key: "damageDealt", title: this.$t("unitStats.weaponsTable.headers.damageDealt"), align: "end" },
         { key: "kills", title: this.$t("unitStats.weaponsTable.headers.kills"), align: "end" },
@@ -136,9 +141,15 @@ export default {
     },
   },
   methods: {
-    formatNumber (num: number) {
-      return num.toFixed(1)
+    toSlotDisplay (slot: number): string {
+      const isSubslot = slot % 2 == 1;
+      return isSubslot
+        ? ((slot + 1) / 2).toString() + "+1"
+        : (slot / 2 + 1).toString();
     },
+    formatDamage,
+    formatDecimal,
+    formatInt,
   },
   data: () => ({}),
 }

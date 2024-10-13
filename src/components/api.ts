@@ -97,6 +97,20 @@ export interface UnitTemplate {
   weapons: string[];
 }
 
+export function TemplatesEqual(first: UnitTemplate, second: UnitTemplate, compareShields: boolean): boolean {
+  return first.chassis == second.chassis
+    && first.playerIndex == second.playerIndex
+    && (!compareShields || first.powerShield == second.powerShield)
+    && first.weapons[0] == second.weapons[0]
+    && first.weapons[1] == second.weapons[1]
+    && first.weapons[2] == second.weapons[2]
+    && first.weapons[3] == second.weapons[3]
+    && first.weapons[4] == second.weapons[4]
+    && first.weapons[5] == second.weapons[5]
+    && first.weapons[6] == second.weapons[6]
+    && first.weapons[7] == second.weapons[7];
+}
+
 export interface WeaponStats {
   buildingDamage: number;
   buildingsKilled: number;
