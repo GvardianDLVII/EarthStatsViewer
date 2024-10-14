@@ -12,7 +12,7 @@
     <v-data-table :items="items" :headers="headers" density="compact" itemsPerPage="-1" hideDefaultFooter>
       <template v-slot:item.player="{ value }">
         <div class="d-flex">
-          <player-label :index="value" :name="stats.players[value].name" />
+          <player-label :index="value" :name="stats.players.find(i => i.index == value).name" />
         </div>
       </template>
       <template v-slot:item.unit="{ value }">
