@@ -9,7 +9,14 @@
       <v-switch class="ml-4 d-flex" v-model="groupShields" :density="'compact'" :label="$t('unitStats.combatTable.groupShields')" color="primary" />
       <v-spacer />
     </v-toolbar>
-    <v-data-table :items="items" :headers="headers" density="compact" itemsPerPage="-1" hideDefaultFooter>
+    <v-data-table
+      :items="items"
+      :headers="headers"
+      density="compact"
+      itemsPerPage="-1"
+      hideDefaultFooter
+      v-model:sort-by="sortBy"
+      >
       <template v-slot:item.player="{ value }">
         <div class="d-flex">
           <player-label :index="value" :name="(stats.players.find(i => i.index == value) as any).name" />
@@ -71,6 +78,7 @@ export default {
     groupChassis: true,
     groupWeapons: true,
     groupShields: true,
+    sortBy: [{ key: 'damageDealt', order: 'desc' }] as any[],
   }),
   computed: {
     items(): StatsRow[] {

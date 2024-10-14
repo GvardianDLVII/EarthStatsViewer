@@ -5,7 +5,7 @@
       <v-switch class="ml-4 d-flex" v-model="groupAmmo" :density="'compact'" :label="$t('unitStats.ammoTable.groupAmmo')" color="primary" />
       <v-spacer />
     </v-toolbar>
-    <v-data-table :items="items" :headers="headers" density="compact" itemsPerPage="-1" hideDefaultFooter>
+    <v-data-table :items="items" :headers="headers" density="compact" itemsPerPage="-1" hideDefaultFooter v-model:sort-by="sortBy">
       <template v-slot:item.ammo="{ value }">
         {{ $t(`objectNames.ammo.${value}`) }}
       </template>
@@ -40,6 +40,7 @@ export default {
   },
   data: () => ({
     groupAmmo: true,
+    sortBy: [{ key: 'damageTaken', order: 'desc' }] as any[],
   }),
   computed: {
     items(): StatsRow[] {

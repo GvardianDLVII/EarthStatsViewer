@@ -157,6 +157,26 @@ export default {
         }
       });
 
+      result.sort((a: StatsRow, b: StatsRow) => {
+        let aKills = 0;
+        for (let i = 0; i < 8; i++) {
+          aKills += a.stats.weapons[i].buildingsKilled;
+          for (const [key, value] of Object.entries(a.stats.weapons[i].unitsKilled)) {
+            aKills += value;
+          }
+        }
+
+        let bKills = 0;
+        for (let i = 0; i < 8; i++) {
+          bKills += b.stats.weapons[i].buildingsKilled;
+          for (const [key, value] of Object.entries(b.stats.weapons[i].unitsKilled)) {
+            bKills += value;
+          }
+        }
+
+        return bKills - aKills;
+      })
+
       return result;
     },
   },
