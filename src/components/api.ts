@@ -4,6 +4,8 @@ export interface GameStats {
   dateTime: Date;
   players: Player[];
   statsData: StatsData;
+
+  damageStats?: DamageStats;
 }
 
 export interface Player {
@@ -37,6 +39,8 @@ export interface StatsData {
   moneyTransferred: StatsMetric[];
   unitsCaptured: StatsMetric[];
   unitsTransferred: StatsMetric[];
+  damageDealt: StatsMetric[];
+  damageReceived: StatsMetric[];
 }
 
 export interface StatsMetric {
@@ -70,6 +74,8 @@ export interface PlayerStatsModel {
   moneyTransferred: number[];
   unitsCaptured: number[];
   unitsTransferred: number[];
+  damageDealt: number[];
+  damageReceived: number[];
   
   moneyFlow: number[];
   avgUnitsValue: number[];
@@ -82,4 +88,52 @@ export interface StatsMetricModel {
   name: string;
   description: string;
   getValue(playerStats: PlayerStatsModel, range: number[]) : number[];
+}
+
+export interface UnitTemplate {
+  playerIndex: number;
+  chassis: string;
+  powerShield: number;
+  weapons: string[];
+}
+
+export function TemplatesEqual(first: UnitTemplate, second: UnitTemplate, compareShields: boolean): boolean {
+  return first.chassis == second.chassis
+    && first.playerIndex == second.playerIndex
+    && (!compareShields || first.powerShield == second.powerShield)
+    && first.weapons[0] == second.weapons[0]
+    && first.weapons[1] == second.weapons[1]
+    && first.weapons[2] == second.weapons[2]
+    && first.weapons[3] == second.weapons[3]
+    && first.weapons[4] == second.weapons[4]
+    && first.weapons[5] == second.weapons[5]
+    && first.weapons[6] == second.weapons[6]
+    && first.weapons[7] == second.weapons[7];
+}
+
+export interface WeaponStats {
+  buildingDamage: number;
+  buildingsKilled: number;
+  unitsDamage: object;
+  unitsKilled: object;
+}
+
+export interface UnitStats {
+  identity: number;
+  weapons: WeaponStats[];
+  damageByUnits: object;
+  killedByUnits: object;
+  damageByBuildings: number;
+  killedByBuildings: number;
+  damageByAmmo: object;
+  killedByAmmo: object;
+}
+
+export interface PlayerDamageStats {
+  units: UnitStats[];
+}
+
+export interface DamageStats {
+  identities: UnitTemplate[];
+  players: PlayerDamageStats[];
 }

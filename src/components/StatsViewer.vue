@@ -4,40 +4,69 @@
       <v-col sm="12" md="4" lg="3" xl="2">
         <v-card outlined :elevation="8" class="fill-height left-panel">
           <v-img src="/logo.png"></v-img>
-          <v-card-title>Stats viewer</v-card-title>
+          <v-card-title class="d-flex align-center">
+            <span> {{ $t("main.title") }} </span>
+            <v-spacer />
+            <v-switch
+              v-model="darkTheme"
+              color="primary"
+              density="compact"
+              @update:model-value="updateTheme"
+              hide-details
+            ></v-switch>
+            <v-icon class="ml-2" icon="mdi-weather-night" :color="darkTheme ? 'primary' : ''" />
+          </v-card-title>
           <v-divider />
           <v-card-text>
             <v-file-input
               v-model="files"
               multiple
-              :density="'compact'"
-              label="File input"
+              density="compact"
+              :label="$t('main.fileInput')"
               variant="outlined"
               @update:model-value="readFiles"
               :clearable="false"
               prepend-icon=""
               class="stats-file-input"
             />
-            <v-switch v-model="teamMode" :density="'compact'" label="Team mode" :disabled="!statsLoaded || multipleMode"></v-switch>
-            <v-virtual-scroll height="540" :items="metricTypes">
-              <template v-slot:default="{ item }">
-                <v-btn
-                  variant="outlined"
-                  @click="select(item)"
-                  width="100%"
-                  :color="currentChart == item.id ? 'blue' : ''"
-                  :disabled="!statsLoaded"
-                >
-                  {{ item.name}}
-                </v-btn>
-              </template>
-            </v-virtual-scroll>
+            <v-switch v-model="showDetails" density="compact" :label="$t('options.showDetails')" :disabled="!canViewDetails" hide-details color="primary"></v-switch>
+            <div v-if="!canViewDetails || !showDetails">
+              <v-switch v-model="teamMode" density="compact" :label="$t('options.teamMode')" :disabled="!statsLoaded || multipleMode" hide-details color="primary"></v-switch>
+              <v-virtual-scroll height="520" :items="metricTypes">
+                <template v-slot:default="{ item }">
+                  <v-btn
+                    variant="outlined"
+                    @click="select(item)"
+                    width="100%"
+                    :color="currentChart == item.id ? 'blue' : ''"
+                    :disabled="!statsLoaded"
+                  >
+                    {{ item.name}}
+                  </v-btn>
+                </template>
+              </v-virtual-scroll>
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
       <v-col sm="12" md="8" lg="9" xl="10" id="chartCol">
-        <v-card v-if="statsLoaded" outlined :elevation="8" class="fill-height">
-          <v-card-title v-if="multipleMode">Multiple files selected</v-card-title>
+        <v-card v-if="statsLoaded && !multipleMode && showDetails" :elevation="8" class="fill-height">
+          <v-tabs v-model="tab">
+            <v-tab v-for="player in singleStats.players.filter(p => !p.isSpectator)" :value="player.index">
+              <player-label :index="player.index" :name="player.name" />
+              {{ player.name }}
+            </v-tab>
+          </v-tabs>
+          <v-card-text>
+            <v-tabs-window v-model="tab">
+              <v-tabs-window-item v-for="player in singleStats.players.filter(p => !p.isSpectator)" :value="player.index">
+                <player-stats :player-index="player.index" :stats="singleStats" />
+              </v-tabs-window-item>
+            </v-tabs-window>
+          </v-card-text>
+        </v-card>
+        <v-card v-else-if="statsLoaded" outlined :elevation="8" class="fill-height">
+          <v-card-title v-if="multipleMode">{{ $t("main.multipleFilesLoaded") }}</v-card-title>
           <v-card-title class="d-flex" v-else>
             <span>{{ singleStats.levelName }}</span>
             <v-spacer />
@@ -69,7 +98,7 @@
         </v-card>
         <v-card v-else :elevation="8" class="fill-height">
           <v-card-subtitle class="d-flex align-center fill-height">
-            <v-spacer /><h2>No stats file loaded</h2><v-spacer />
+            <v-spacer /><h2> {{ $t("main.noFileLoaded") }} </h2><v-spacer />
           </v-card-subtitle>
         </v-card>
       </v-col>
@@ -83,11 +112,17 @@ import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement
 import { GameStats, Player, PlayerStatsModel, StatsMetricModel } from './api';
 import { createBackgroundPlugin } from '@/plugins/chartjs';
 import { readStats } from './statsReader';
+import UnitStatsHeader from './UnitStatsHeader.vue';
+import { playerColors } from '@/code/common';
+import PlayerLabel from './PlayerLabel.vue';
+import PlayerStats from './PlayerStats.vue';
+import { ThemeInstance } from 'vuetify'
+import { PropType } from 'vue';
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend);
 
 export default {
-  components: { Line },
+  components: { Line, UnitStatsHeader, PlayerLabel, PlayerStats },
   data: () => ({
     chartOptions: {
       responsive: true,
@@ -117,7 +152,13 @@ export default {
     teamMode: false,
     chartRange: [0, 0],
     races: {1: "UCS", 2: "ED", 3: "LC"} as any,
+    showDetails: false,
+    darkTheme: true,
+    tab: 0,
   }),
+  props: {
+    theme: {type: Object as PropType<ThemeInstance>, required: true },
+  },
   computed: {
     multipleStats(): PlayerStatsModel[] {
       let result = [] as PlayerStatsModel[];
@@ -131,7 +172,7 @@ export default {
             displayName: `[G${i+1}] ${p.name} [${this.races[p.race]}]`,
             name: p.name,
             isSpectator: false,
-            color: this.playerColors[index % this.playerColors.length],
+            color: playerColors[index % playerColors.length],
             team: index,
 
             currentMoney: this.gameStats[i].statsData.currentMoney[j].values,
@@ -154,6 +195,8 @@ export default {
             moneyTransferred: this.gameStats[i].statsData.moneyTransferred[j].values,
             unitsCaptured: this.gameStats[i].statsData.unitsCaptured[j].values,
             unitsTransferred: this.gameStats[i].statsData.unitsTransferred[j].values,
+            damageDealt: this.gameStats[i].statsData.damageDealt[j].values,
+            damageReceived: this.gameStats[i].statsData.damageReceived[j].values,
             moneyFlow: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.minedMoney[j].values[k - 60])),
             avgUnitsValue: this.gameStats[i].statsData.unitsValue[j].values.map((d, k) => d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
             killsDeaths: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => d/(this.gameStats[i].statsData.unitsLost[j].values[k] ? this.gameStats[i].statsData.unitsLost[j].values[k] : 1)),
@@ -170,7 +213,7 @@ export default {
           displayName: `${this.teamPrefix(p)} ${p.name} [${this.races[p.race]}]`,
           name: p.name,
           isSpectator: p.isSpectator,
-          color: this.playerColors[p.index],
+          color: playerColors[p.index],
           team: p.team,
 
           currentMoney: this.singleStats.statsData.currentMoney[i].values,
@@ -193,6 +236,8 @@ export default {
           moneyTransferred: this.singleStats.statsData.moneyTransferred[i].values,
           unitsCaptured: this.singleStats.statsData.unitsCaptured[i].values,
           unitsTransferred: this.singleStats.statsData.unitsTransferred[i].values,
+          damageDealt: this.singleStats.statsData.damageDealt[i].values,
+          damageReceived: this.singleStats.statsData.damageReceived[i].values,
           moneyFlow: this.singleStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.minedMoney[i].values[j - 60])),
           avgUnitsValue: this.singleStats.statsData.unitsValue[i].values.map((d, j) => d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
           killsDeaths: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => d/(this.singleStats.statsData.unitsLost[i].values[j] ? this.singleStats.statsData.unitsLost[i].values[j] : 1)),
@@ -231,6 +276,8 @@ export default {
           moneyTransferred: teamPlayers[0].moneyTransferred.map((_v, i) => teamPlayers.map(tp => tp.moneyTransferred[i]).reduce((s, a) => s + a, 0)),
           unitsCaptured: teamPlayers[0].unitsCaptured.map((_v, i) => teamPlayers.map(tp => tp.unitsCaptured[i]).reduce((s, a) => s + a, 0)),
           unitsTransferred: teamPlayers[0].unitsTransferred.map((_v, i) => teamPlayers.map(tp => tp.unitsTransferred[i]).reduce((s, a) => s + a, 0)),
+          damageDealt: teamPlayers[0].damageDealt.map((_v, i) => teamPlayers.map(tp => tp.damageDealt[i]).reduce((s, a) => s + a, 0)),
+          damageReceived: teamPlayers[0].damageReceived.map((_v, i) => teamPlayers.map(tp => tp.damageReceived[i]).reduce((s, a) => s + a, 0)),
           moneyFlow: teamPlayers[0].moneyFlow.map((_v, i) => teamPlayers.map(tp => tp.moneyFlow[i]).reduce((s, a) => s + a, 0)),
           avgUnitsValue: teamPlayers[0].avgUnitsValue.map((_v, i) => teamPlayers.map(tp => tp.unitsValue[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
           killsDeaths: teamPlayers[0].killsDeaths.map((_v, i) => teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) : 1),
@@ -265,31 +312,163 @@ export default {
     },
     metricTypes(): StatsMetricModel[] {
       return [
-        { id: 1, name: "Current money", description: "Money [CR] over time", getValue: (p, range) => { return p.currentMoney.slice(range[0], range[1]); }},
-        { id: 2, name: "Mined money", description: "Money [CR] mined over time", getValue: (p, range) => { return p.minedMoney.slice(range[0], range[1]); }},
-        { id: 3, name: "Spent money", description: "Money [CR] spent over time", getValue: (p, range) => { return p.spentMoney.slice(range[0], range[1]); }},
-        { id: 4, name: "Buildings cost", description: "Buildings cost [CR] over time", getValue: (p, range) => { return p.buildingsCost.slice(range[0], range[1]); }},
-        { id: 5, name: "Building weapons cost", description: "Building weapons cost [CR] over time", getValue: (p, range) => { return p.buildingWeaponsCost.slice(range[0], range[1]); }},
-        { id: 6, name: "Units cost", description: "Units cost [CR] over time", getValue: (p, range) => { return p.unitsCost.slice(range[0], range[1]); }},
-        { id: 7, name: "Researches cost", description: "Researches cost [CR] over time", getValue: (p, range) => { return p.researchesCost.slice(range[0], range[1]); }},
-        { id: 8, name: "Ammo cost", description: "Ammo cost [CR] over time", getValue: (p, range) => { return p.ammoCost.slice(range[0], range[1]); }},
-        { id: 22, name: "Money transferred", description: "Money [CR] transferred to allies", getValue: (p, range) => { return p.moneyTransferred.slice(range[0], range[1]); }},
-        { id: 21, name: "Money flow", description: "Money [CR] mined in time span of previous 60 seconds", getValue: (p, range) => { return p.moneyFlow.slice(range[0], range[1]); }},
-        { id: 9, name: "Researches count", description: "Number of researches over time", getValue: (p, range) => { return p.researchesCount.slice(range[0], range[1]); }},
-        { id: 10, name: "Buildings built", description: "Number of buildings built over time", getValue: (p, range) => { return p.buildingsBuilt.slice(range[0], range[1]); }},
-        { id: 11, name: "Buildings lost", description: "Number of buildings lost over time", getValue: (p, range) => { return p.buildingsLost.slice(range[0], range[1]); }},
-        { id: 12, name: "Units built", description: "Number of units built over time", getValue: (p, range) => { return p.unitsBuilt.slice(range[0], range[1]); }},
-        { id: 13, name: "Units lost", description: "Number of units lost over time", getValue: (p, range) => { return p.unitsLost.slice(range[0], range[1]); }},
-        { id: 14, name: "Destroyed units", description: "Number of units destroyed over time", getValue: (p, range) => { return p.destroyedUnits.slice(range[0], range[1]); }},
-        { id: 15, name: "Destroyed buildings", description: "Number of buldings destroyed over time", getValue: (p, range) => { return p.destroyedBuildings.slice(range[0], range[1]); }},
-        { id: 16, name: "Military units", description: "Number of military units alive (army size)", getValue: (p, range) => { return p.militaryUnits.slice(range[0], range[1]); }},
-        { id: 17, name: "Units value", description: "Value [CR] of all alive military units", getValue: (p, range) => { return p.unitsValue.slice(range[0], range[1]); }},
-        { id: 18, name: "Avg units value", description: "Avg value [CR] of military units", getValue: (p, range) => { return p.avgUnitsValue.slice(range[0], range[1]); }},
-        { id: 19, name: "K/D", description: "Destroyed to lost ratio of units", getValue: (p, range) => { return p.killsDeaths.slice(range[0], range[1]); }},
-        { id: 20, name: "K/D 5min", description: "Destroyed to lost ratio of units in timespan of previous 5 minutes", getValue: (p, range) => { return p.killsDeathsFiveMin.slice(range[0], range[1]); }},
-        { id: 23, name: "Units captured", description: "Number of units captured", getValue: (p, range) => { return p.unitsCaptured.slice(range[0], range[1]); }},
-        { id: 24, name: "Units received", description: "Number of units received from allies", getValue: (p, range) => { return p.unitsTransferred.slice(range[0], range[1]); }},
-      ]
+        {
+          id: 1,
+          name: this.$t('statsCharts.metrics.currentMoney.name'),
+          description: this.$t('statsCharts.metrics.currentMoney.description'),
+          getValue: (p, range) => p.currentMoney.slice(range[0], range[1])
+        },
+        {
+          id: 2,
+          name: this.$t('statsCharts.metrics.minedMoney.name'),
+          description: this.$t('statsCharts.metrics.minedMoney.description'),
+          getValue: (p, range) => p.minedMoney.slice(range[0], range[1])
+        },
+        {
+          id: 3,
+          name: this.$t('statsCharts.metrics.spentMoney.name'),
+          description: this.$t('statsCharts.metrics.spentMoney.description'),
+          getValue: (p, range) => p.spentMoney.slice(range[0], range[1])
+        },
+        {
+          id: 4,
+          name: this.$t('statsCharts.metrics.buildingsCost.name'),
+          description: this.$t('statsCharts.metrics.buildingsCost.description'),
+          getValue: (p, range) => p.buildingsCost.slice(range[0], range[1])
+        },
+        {
+          id: 5,
+          name: this.$t('statsCharts.metrics.buildingWeaponsCost.name'),
+          description: this.$t('statsCharts.metrics.buildingWeaponsCost.description'),
+          getValue: (p, range) => p.buildingWeaponsCost.slice(range[0], range[1])
+        },
+        {
+          id: 6,
+          name: this.$t('statsCharts.metrics.unitsCost.name'),
+          description: this.$t('statsCharts.metrics.unitsCost.description'),
+          getValue: (p, range) => p.unitsCost.slice(range[0], range[1])
+        },
+        {
+          id: 7,
+          name: this.$t('statsCharts.metrics.researchesCost.name'),
+          description: this.$t('statsCharts.metrics.researchesCost.description'),
+          getValue: (p, range) => p.researchesCost.slice(range[0], range[1])
+        },
+        {
+          id: 8,
+          name: this.$t('statsCharts.metrics.ammoCost.name'),
+          description: this.$t('statsCharts.metrics.ammoCost.description'),
+          getValue: (p, range) => p.ammoCost.slice(range[0], range[1])
+        },
+        {
+          id: 22,
+          name: this.$t('statsCharts.metrics.moneyTransferred.name'),
+          description: this.$t('statsCharts.metrics.moneyTransferred.description'),
+          getValue: (p, range) => p.moneyTransferred.slice(range[0], range[1])
+        },
+        {
+          id: 21,
+          name: this.$t('statsCharts.metrics.moneyFlow.name'),
+          description: this.$t('statsCharts.metrics.moneyFlow.description'),
+          getValue: (p, range) => p.moneyFlow.slice(range[0], range[1])
+        },
+        {
+          id: 9,
+          name: this.$t('statsCharts.metrics.researchesCount.name'),
+          description: this.$t('statsCharts.metrics.researchesCount.description'),
+          getValue: (p, range) => p.researchesCount.slice(range[0], range[1])
+        },
+        {
+          id: 10,
+          name: this.$t('statsCharts.metrics.buildingsBuilt.name'),
+          description: this.$t('statsCharts.metrics.buildingsBuilt.description'),
+          getValue: (p, range) => p.buildingsBuilt.slice(range[0], range[1])
+        },
+        {
+          id: 11,
+          name: this.$t('statsCharts.metrics.buildingsLost.name'),
+          description: this.$t('statsCharts.metrics.buildingsLost.description'),
+          getValue: (p, range) => p.buildingsLost.slice(range[0], range[1])
+        },
+        {
+          id: 12,
+          name: this.$t('statsCharts.metrics.unitsBuilt.name'),
+          description: this.$t('statsCharts.metrics.unitsBuilt.description'),
+          getValue: (p, range) => p.unitsBuilt.slice(range[0], range[1])
+        },
+        {
+          id: 13,
+          name: this.$t('statsCharts.metrics.unitsLost.name'),
+          description: this.$t('statsCharts.metrics.unitsLost.description'),
+          getValue: (p, range) => p.unitsLost.slice(range[0], range[1])
+        },
+        {
+          id: 14,
+          name: this.$t('statsCharts.metrics.destroyedUnits.name'),
+          description: this.$t('statsCharts.metrics.destroyedUnits.description'),
+          getValue: (p, range) => p.destroyedUnits.slice(range[0], range[1])
+        },
+        {
+          id: 15,
+          name: this.$t('statsCharts.metrics.destroyedBuildings.name'),
+          description: this.$t('statsCharts.metrics.destroyedBuildings.description'),
+          getValue: (p, range) => p.destroyedBuildings.slice(range[0], range[1])
+        },
+        {
+          id: 16,
+          name: this.$t('statsCharts.metrics.militaryUnits.name'),
+          description: this.$t('statsCharts.metrics.militaryUnits.description'),
+          getValue: (p, range) => p.militaryUnits.slice(range[0], range[1])
+        },
+        {
+          id: 17,
+          name: this.$t('statsCharts.metrics.unitsValue.name'),
+          description: this.$t('statsCharts.metrics.unitsValue.description'),
+          getValue: (p, range) => p.unitsValue.slice(range[0], range[1])
+        },
+        {
+          id: 18,
+          name: this.$t('statsCharts.metrics.avgUnitsValue.name'),
+          description: this.$t('statsCharts.metrics.avgUnitsValue.description'),
+          getValue: (p, range) => p.avgUnitsValue.slice(range[0], range[1])
+        },
+        {
+          id: 19,
+          name: this.$t('statsCharts.metrics.killsDeaths.name'),
+          description: this.$t('statsCharts.metrics.killsDeaths.description'),
+          getValue: (p, range) => p.killsDeaths.slice(range[0], range[1])
+        },
+        {
+          id: 20,
+          name: this.$t('statsCharts.metrics.killsDeathsFiveMin.name'),
+          description: this.$t('statsCharts.metrics.killsDeathsFiveMin.description'),
+          getValue: (p, range) => p.killsDeathsFiveMin.slice(range[0], range[1])
+        },
+        {
+          id: 23,
+          name: this.$t('statsCharts.metrics.unitsCaptured.name'),
+          description: this.$t('statsCharts.metrics.unitsCaptured.description'),
+          getValue: (p, range) => p.unitsCaptured.slice(range[0], range[1])
+        },
+        {
+          id: 24,
+          name: this.$t('statsCharts.metrics.unitsTransferred.name'),
+          description: this.$t('statsCharts.metrics.unitsTransferred.description'),
+          getValue: (p, range) => p.unitsTransferred.slice(range[0], range[1])
+        },
+        {
+          id: 25,
+          name: this.$t('statsCharts.metrics.damageDealt.name'),
+          description: this.$t('statsCharts.metrics.damageDealt.description'),
+          getValue: (p, range) => p.damageDealt.slice(range[0], range[1])
+        },
+        {
+          id: 26,
+          name: this.$t('statsCharts.metrics.damageReceived.name'),
+          description: this.$t('statsCharts.metrics.damageReceived.description'),
+          getValue: (p, range) => p.damageReceived.slice(range[0], range[1])
+        }
+      ];
     },
     chartData(): any {
       if(!this.statsLoaded) return {};
@@ -312,25 +491,8 @@ export default {
     maxRange(): number {
       return this.statsLoaded ? this.allTicks.length - 1 : 0;
     },
-    playerColors(): string[] {
-      return [
-        "#FFFF3C",
-        "#FF423D",
-        "#3CFF4B",
-        "#3C43FF",
-        "#FF9E3C",
-        "#5DFFFF",
-        "#E51B5F",
-        "#EF3CFF",
-        "#FFFFFF",
-        "#AAAAAA",
-        "#585858",
-        "#B0AE2F",
-        "#FFE79E",
-        "#E0FFD0",
-        "#FFE4FF",
-        "#B7BBFF",
-      ]
+    canViewDetails(): boolean {
+      return this.statsLoaded && !this.multipleMode && this.gameStats[0].apiVersion > 1;
     },
   },
   methods: {
@@ -339,6 +501,8 @@ export default {
         return;
 
       this.gameStats = [];
+      this.showDetails = false;
+      this.teamMode = false;
       for(let i = 0; i < this.files.length; i++)
       {
         let gameStats = await readStats(this.files[i]);
@@ -351,12 +515,15 @@ export default {
     },
     teamPrefix(player: Player): string {
       if (player.isSpectator)
-        return "[Obs]";
+        return "[" + this.$t("statsCharts.observerPrefix") + "]";
       return `[${player.team}]`;
     },
     select(item :StatsMetricModel): void {
       this.currentChart = item.id;
     },
+    updateTheme() {
+      this.theme.global.name.value = this.darkTheme ? 'dark' : 'light'
+    }
   },
 }
 
