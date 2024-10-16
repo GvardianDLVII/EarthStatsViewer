@@ -1,4 +1,123 @@
 export const en = {
+  main: {
+    title: "Stats viewer",
+    fileInput: "File input",
+    noFileLoaded: "No stats file loaded",
+    multipleFilesLoaded: "Multiple files selected",
+  },
+  options: {
+    showDetails: "Show Details",
+    teamMode: "Team mode",
+  },
+  statsCharts: {
+    observerPrefix: "Obs",
+    metrics: {
+      currentMoney: {
+        name: "Current money",
+        description: "Money [CR] over time",
+      },
+      minedMoney: {
+        name: "Mined money",
+        description: "Money [CR] mined over time",
+      },
+      spentMoney: {
+        name: "Spent money",
+        description: "Money [CR] spent over time",
+      },
+      buildingsCost: {
+        name: "Buildings cost",
+        description: "Buildings cost [CR] over time",
+      },
+      buildingWeaponsCost: {
+        name: "Building weapons cost",
+        description: "Building weapons cost [CR] over time",
+      },
+      unitsCost: {
+        name: "Units cost",
+        description: "Units cost [CR] over time",
+      },
+      researchesCost: {
+        name: "Researches cost",
+        description: "Researches cost [CR] over time",
+      },
+      ammoCost: {
+        name: "Ammo cost",
+        description: "Ammo cost [CR] over time",
+      },
+      moneyTransferred: {
+        name: "Money transferred",
+        description: "Money [CR] transferred to allies",
+      },
+      moneyFlow: {
+        name: "Money flow",
+        description: "Money [CR] mined in time span of previous 60 seconds",
+      },
+      researchesCount: {
+        name: "Researches count",
+        description: "Number of researches over time",
+      },
+      buildingsBuilt: {
+        name: "Buildings built",
+        description: "Number of buildings built over time",
+      },
+      buildingsLost: {
+        name: "Buildings lost",
+        description: "Number of buildings lost over time",
+      },
+      unitsBuilt: {
+        name: "Units built",
+        description: "Number of units built over time",
+      },
+      unitsLost: {
+        name: "Units lost",
+        description: "Number of units lost over time",
+      },
+      destroyedUnits: {
+        name: "Destroyed units",
+        description: "Number of units destroyed over time",
+      },
+      destroyedBuildings: {
+        name: "Destroyed buildings",
+        description: "Number of buldings destroyed over time",
+      },
+      militaryUnits: {
+        name: "Military units",
+        description: "Number of military units alive (army size)",
+      },
+      unitsValue: {
+        name: "Units value",
+        description: "Value [CR] of all alive military units",
+      },
+      avgUnitsValue: {
+        name: "Avg units value",
+        description: "Avg value [CR] of military units",
+      },
+      killsDeaths: {
+        name: "K/D",
+        description: "Destroyed to lost ratio of units",
+      },
+      killsDeathsFiveMin: {
+        name: "K/D 5min",
+        description: "Destroyed to lost ratio of units in timespan of previous 5 minutes",
+      },
+      unitsCaptured: {
+        name: "Units captured",
+        description: "Number of units captured",
+      },
+      unitsTransferred: {
+        name: "Units received",
+        description: "Number of units received from allies",
+      },
+      damageDealt: {
+        name: "Damage dealt",
+        description: "Total amount of damage given",
+      },
+      damageReceived: {
+        name: "Damage received",
+        description: "Total amount of damage received",
+      }
+    },
+  },
   common: {
     shields: {
       noShield: "No shield",
@@ -70,7 +189,7 @@ export const en = {
       EDUTO1: "MI 42 Lenin",
       EDUSS: "Space shuttle",
       EDUTA1: "Ukraine",
-      
+
       UCSUBU1: "Mammoth",
       UCSUAS1: "Condor",
       UCSUOH1: "Harvester",
@@ -210,7 +329,7 @@ export const en = {
         LCWHERO: "P",
         LCWUFO: "UFO",
         LCWAN1: "An",
-        
+
         EDWCH: 'MG',
         EDWCH1: 'MG1',
         EDWCH2: 'MG2',
@@ -493,7 +612,7 @@ export const en = {
         EDWSHR2: "Nuclear warheads upg. 1",
         EDWART: "Artillery",
         EDWAN1: "Animissile",
-        
+
         UCSWCH: 'MG 20mm',
         UCSWTCH1: 'MG 20mm',
         UCSWTCH2: 'MG 20mm upg. 1',
