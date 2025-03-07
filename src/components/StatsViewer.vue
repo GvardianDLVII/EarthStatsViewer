@@ -169,7 +169,7 @@ export default {
           if (p.isSpectator)
             continue;
           result.push({
-            displayName: `[G${i+1}] ${p.name} [${this.races[p.race]}]`,
+            displayName: `[G${i+1}-${p.index + 1}] ${p.name} [${this.races[p.race]}]`,
             name: p.name,
             isSpectator: false,
             color: playerColors[index % playerColors.length],
