@@ -197,10 +197,13 @@ export default {
             unitsTransferred: this.gameStats[i].statsData.unitsTransferred[j].values,
             damageDealt: this.gameStats[i].statsData.damageDealt[j].values,
             damageReceived: this.gameStats[i].statsData.damageReceived[j].values,
+            commandsSent: this.gameStats[i].statsData.commandsSent[j].values,
             moneyFlow: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.minedMoney[j].values[k - 60])),
             avgUnitsValue: this.gameStats[i].statsData.unitsValue[j].values.map((d, k) => d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
             killsDeaths: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => d/(this.gameStats[i].statsData.unitsLost[j].values[k] ? this.gameStats[i].statsData.unitsLost[j].values[k] : 1)),
             killsDeathsFiveMin: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => (d - (k < 300 ? 0 : this.gameStats[i].statsData.destroyedUnits[j].values[k - 300]))/((this.gameStats[i].statsData.unitsLost[j].values[k] - (k < 300 ? 0 : this.gameStats[i].statsData.unitsLost[j].values[k - 300]))? (this.gameStats[i].statsData.unitsLost[j].values[k] - (k < 300 ? 0 : this.gameStats[i].statsData.unitsLost[j].values[k - 300])) : 1)),
+            commandsSentPerMin: this.gameStats[i].statsData.commandsSent[j].values.map((m, k) => m / k * 60),
+            commandsSentLastMin: this.gameStats[i].statsData.commandsSent[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.commandsSent[j].values[k - 60])),
           });
           index++;
         }
@@ -238,10 +241,13 @@ export default {
           unitsTransferred: this.singleStats.statsData.unitsTransferred[i].values,
           damageDealt: this.singleStats.statsData.damageDealt[i].values,
           damageReceived: this.singleStats.statsData.damageReceived[i].values,
+          commandsSent: this.singleStats.statsData.commandsSent[i].values,
           moneyFlow: this.singleStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.minedMoney[i].values[j - 60])),
           avgUnitsValue: this.singleStats.statsData.unitsValue[i].values.map((d, j) => d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
           killsDeaths: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => d/(this.singleStats.statsData.unitsLost[i].values[j] ? this.singleStats.statsData.unitsLost[i].values[j] : 1)),
           killsDeathsFiveMin: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : this.singleStats.statsData.destroyedUnits[i].values[j - 300]))/((this.singleStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.singleStats.statsData.unitsLost[i].values[j - 300])) ? (this.singleStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.singleStats.statsData.unitsLost[i].values[j - 300])) : 1)),
+          commandsSentPerMin: this.singleStats.statsData.commandsSent[i].values.map((m, k) => m / k * 60),
+          commandsSentLastMin: this.singleStats.statsData.commandsSent[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.commandsSent[i].values[j - 60])),
         };
       });
     },
@@ -278,10 +284,13 @@ export default {
           unitsTransferred: teamPlayers[0].unitsTransferred.map((_v, i) => teamPlayers.map(tp => tp.unitsTransferred[i]).reduce((s, a) => s + a, 0)),
           damageDealt: teamPlayers[0].damageDealt.map((_v, i) => teamPlayers.map(tp => tp.damageDealt[i]).reduce((s, a) => s + a, 0)),
           damageReceived: teamPlayers[0].damageReceived.map((_v, i) => teamPlayers.map(tp => tp.damageReceived[i]).reduce((s, a) => s + a, 0)),
+          commandsSent: teamPlayers[0].commandsSent.map((_v, i) => teamPlayers.map(tp => tp.commandsSent[i]).reduce((s, a) => s + a, 0)),
           moneyFlow: teamPlayers[0].moneyFlow.map((_v, i) => teamPlayers.map(tp => tp.moneyFlow[i]).reduce((s, a) => s + a, 0)),
           avgUnitsValue: teamPlayers[0].avgUnitsValue.map((_v, i) => teamPlayers.map(tp => tp.unitsValue[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
           killsDeaths: teamPlayers[0].killsDeaths.map((_v, i) => teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) : 1),
           killsDeathsFiveMin: teamPlayers[0].killsDeathsFiveMin.map((_v, i) => (teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0) - (i < 300 ? 0 : teamPlayers.map(tp => tp.destroyedUnits[i - 300]).reduce((s, a) => s + a, 0))) / ((teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0) - (i < 300 ? 0 : teamPlayers.map(tp => tp.unitsLost[i - 300]).reduce((s, a) => s + a, 0))) ? (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0) - (i < 300 ? 0 : teamPlayers.map(tp => tp.unitsLost[i - 300]).reduce((s, a) => s + a, 0))) : 1)),
+          commandsSentPerMin: teamPlayers[0].commandsSentPerMin.map((_v, i) => teamPlayers.map(tp => tp.commandsSentPerMin[i]).reduce((s, a) => s + a, 0)),
+          commandsSentLastMin: teamPlayers[0].commandsSentLastMin.map((_v, i) => teamPlayers.map(tp => tp.commandsSentLastMin[i]).reduce((s, a) => s + a, 0)),
         };
       });
     },
@@ -467,6 +476,24 @@ export default {
           name: this.$t('statsCharts.metrics.damageReceived.name'),
           description: this.$t('statsCharts.metrics.damageReceived.description'),
           getValue: (p, range) => p.damageReceived.slice(range[0], range[1])
+        },
+        {
+          id: 27,
+          name: this.$t('statsCharts.metrics.commandsSent.name'),
+          description: this.$t('statsCharts.metrics.commandsSent.description'),
+          getValue: (p, range) => p.commandsSent.slice(range[0], range[1])
+        },
+        {
+          id: 28,
+          name: this.$t('statsCharts.metrics.commandsSentPerMin.name'),
+          description: this.$t('statsCharts.metrics.commandsSentPerMin.description'),
+          getValue: (p, range) => p.commandsSentPerMin.slice(range[0], range[1])
+        },
+        {
+          id: 29,
+          name: this.$t('statsCharts.metrics.commandsSentLastMin.name'),
+          description: this.$t('statsCharts.metrics.commandsSentLastMin.description'),
+          getValue: (p, range) => p.commandsSentLastMin.slice(range[0], range[1])
         }
       ];
     },

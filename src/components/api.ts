@@ -41,6 +41,7 @@ export interface StatsData {
   unitsTransferred: StatsMetric[];
   damageDealt: StatsMetric[];
   damageReceived: StatsMetric[];
+  commandsSent: StatsMetric[];
 }
 
 export interface StatsMetric {
@@ -76,11 +77,14 @@ export interface PlayerStatsModel {
   unitsTransferred: number[];
   damageDealt: number[];
   damageReceived: number[];
+  commandsSent: number[];
   
   moneyFlow: number[];
   avgUnitsValue: number[];
   killsDeaths: number[];
   killsDeathsFiveMin: number[];
+  commandsSentPerMin: number[];
+  commandsSentLastMin: number[];
 }
 
 export interface StatsMetricModel {

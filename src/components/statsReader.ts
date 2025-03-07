@@ -6,7 +6,7 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
   let offset = 0;
   let fileApiVersion = dv.getUint32(offset, true);
   offset += 4;
-  if (fileApiVersion > 2)
+  if (fileApiVersion > 3)
     return undefined; //todo: return Error
   let levelNameLength = dv.getUint32(offset, true);
   offset += 4;
@@ -60,6 +60,7 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
       unitsTransferred: players.map<StatsMetric>(p => ({ values: [] })),
       damageDealt: players.map<StatsMetric>(p => ({ values: [] })),
       damageReceived: players.map<StatsMetric>(p => ({ values: [] })),
+      commandsSent: players.map<StatsMetric>(p => ({ values: [] })),
     },
   };
 
@@ -131,6 +132,13 @@ function readLine(gameStats: GameStats, dv: DataView, offset: number): number {
     else {
       gameStats.statsData.damageDealt[i].values.push(0);
       gameStats.statsData.damageReceived[i].values.push(0);
+    }
+    if (gameStats.apiVersion >= 3) {
+      gameStats.statsData.commandsSent[i].values.push(dv.getUint32(offset + localOffset, true));
+      localOffset += 4;
+    }
+    else {
+      gameStats.statsData.commandsSent[i].values.push(0);
     }
   }
   return localOffset;

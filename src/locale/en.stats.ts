@@ -115,6 +115,18 @@ export const en = {
       damageReceived: {
         name: "Damage received",
         description: "Total amount of damage received",
+      },
+      commandsSent: {
+        name: "Commands sent",
+        description: "Total amount of commands sent by human players in a multiplayer game",
+      },
+      commandsSentPerMin: {
+        name: "Commands per minute",
+        description: "Average amount of commands sent per minute by human players in a multiplayer game",
+      },
+      commandsSentLastMin: {
+        name: "Commands in last minute",
+        description: "Total amount of commands sent by human players in a multiplayer game within last minute",
       }
     },
   },
