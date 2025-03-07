@@ -1,6 +1,6 @@
 <template>
   <v-container class="fill-height">
-    <v-row class="fill-height">
+    <v-row class="fill-height" style="max-width: 100% !important;">
       <v-col sm="12" md="4" lg="3" xl="2">
         <v-card outlined :elevation="8" class="fill-height left-panel">
           <v-img src="/logo.png"></v-img>
