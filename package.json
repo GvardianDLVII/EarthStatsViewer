@@ -21,9 +21,9 @@
     "@types/node": "^18.15.0",
     "@types/webfontloader": "^1.6.35",
     "@vitejs/plugin-vue": "^4.2.0",
-    "typescript": "^5.0.0",
+    "typescript": "^5.8.2",
     "vite": "^4.2.0",
     "vite-plugin-vuetify": "^1.0.0",
-    "vue-tsc": "^1.2.0"
+    "vue-tsc": "^1.8.27"
   }
 }
