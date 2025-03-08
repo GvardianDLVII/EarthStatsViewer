@@ -204,6 +204,7 @@ export default {
             killsDeathsFiveMin: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => (d - (k < 300 ? 0 : this.gameStats[i].statsData.destroyedUnits[j].values[k - 300]))/((this.gameStats[i].statsData.unitsLost[j].values[k] - (k < 300 ? 0 : this.gameStats[i].statsData.unitsLost[j].values[k - 300]))? (this.gameStats[i].statsData.unitsLost[j].values[k] - (k < 300 ? 0 : this.gameStats[i].statsData.unitsLost[j].values[k - 300])) : 1)),
             commandsSentPerMin: this.gameStats[i].statsData.commandsSent[j].values.map((m, k) => m / k * 60),
             commandsSentLastMin: this.gameStats[i].statsData.commandsSent[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.commandsSent[j].values[k - 60])),
+            recentDamage: this.gameStats[i].statsData.damageDealt[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.damageDealt[j].values[k - 60])),
           });
           index++;
         }
@@ -248,6 +249,7 @@ export default {
           killsDeathsFiveMin: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : this.singleStats.statsData.destroyedUnits[i].values[j - 300]))/((this.singleStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.singleStats.statsData.unitsLost[i].values[j - 300])) ? (this.singleStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.singleStats.statsData.unitsLost[i].values[j - 300])) : 1)),
           commandsSentPerMin: this.singleStats.statsData.commandsSent[i].values.map((m, k) => m / k * 60),
           commandsSentLastMin: this.singleStats.statsData.commandsSent[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.commandsSent[i].values[j - 60])),
+          recentDamage: this.singleStats.statsData.damageDealt[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.damageDealt[i].values[j - 60])),
         };
       });
     },
@@ -291,6 +293,7 @@ export default {
           killsDeathsFiveMin: teamPlayers[0].killsDeathsFiveMin.map((_v, i) => (teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0) - (i < 300 ? 0 : teamPlayers.map(tp => tp.destroyedUnits[i - 300]).reduce((s, a) => s + a, 0))) / ((teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0) - (i < 300 ? 0 : teamPlayers.map(tp => tp.unitsLost[i - 300]).reduce((s, a) => s + a, 0))) ? (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0) - (i < 300 ? 0 : teamPlayers.map(tp => tp.unitsLost[i - 300]).reduce((s, a) => s + a, 0))) : 1)),
           commandsSentPerMin: teamPlayers[0].commandsSentPerMin.map((_v, i) => teamPlayers.map(tp => tp.commandsSentPerMin[i]).reduce((s, a) => s + a, 0)),
           commandsSentLastMin: teamPlayers[0].commandsSentLastMin.map((_v, i) => teamPlayers.map(tp => tp.commandsSentLastMin[i]).reduce((s, a) => s + a, 0)),
+          recentDamage: teamPlayers[0].damageDealt.map((_v, i) => teamPlayers.map(tp => tp.damageDealt[i]).reduce((s, a) => s + a, 0)),
         };
       });
     },
@@ -479,18 +482,24 @@ export default {
         },
         {
           id: 27,
+          name: this.$t('statsCharts.metrics.recentDamage.name'),
+          description: this.$t('statsCharts.metrics.recentDamage.description'),
+          getValue: (p, range) => p.recentDamage.slice(range[0], range[1])
+        },
+        {
+          id: 28,
           name: this.$t('statsCharts.metrics.commandsSent.name'),
           description: this.$t('statsCharts.metrics.commandsSent.description'),
           getValue: (p, range) => p.commandsSent.slice(range[0], range[1])
         },
         {
-          id: 28,
+          id: 29,
           name: this.$t('statsCharts.metrics.commandsSentPerMin.name'),
           description: this.$t('statsCharts.metrics.commandsSentPerMin.description'),
           getValue: (p, range) => p.commandsSentPerMin.slice(range[0], range[1])
         },
         {
-          id: 29,
+          id: 30,
           name: this.$t('statsCharts.metrics.commandsSentLastMin.name'),
           description: this.$t('statsCharts.metrics.commandsSentLastMin.description'),
           getValue: (p, range) => p.commandsSentLastMin.slice(range[0], range[1])

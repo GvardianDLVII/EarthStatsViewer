@@ -116,6 +116,10 @@ export const en = {
         name: "Damage received",
         description: "Total amount of damage received",
       },
+      recentDamage: {
+        name: "Recent damage",
+        description: "Damage dealt within last 60 seconds",
+      },
       commandsSent: {
         name: "Commands sent",
         description: "Total amount of commands sent by human players in a multiplayer game",
