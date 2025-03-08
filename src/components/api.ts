@@ -85,6 +85,7 @@ export interface PlayerStatsModel {
   killsDeathsFiveMin: number[];
   commandsSentPerMin: number[];
   commandsSentLastMin: number[];
+  recentDamage: number[];
 }
 
 export interface StatsMetricModel {
