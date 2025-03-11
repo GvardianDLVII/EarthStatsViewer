@@ -92,6 +92,7 @@ export interface PlayerStatsModel {
   commandsSentPerMin: number[];
   commandsSentLastMin: number[];
   recentDamage: number[];
+  miningEfficiency: number[];
 }
 
 export interface StatsMetricModel {
