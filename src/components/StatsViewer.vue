@@ -101,6 +101,7 @@
             <v-spacer /><h2> {{ $t("main.noFileLoaded") }} </h2><v-spacer />
           </v-card-subtitle>
         </v-card>
+        <button @click="findDiff">Find diff</button>
       </v-col>
     </v-row>
   </v-container>
@@ -496,6 +497,59 @@ export default {
     },
   },
   methods: {
+    findDiff() {
+      for (let i = 0; i < Math.min(this.gameStats[0].statsData.ticks.length, this.gameStats[1].statsData.ticks.length); i++) {
+        let stats0 = this.gameStats[0].statsData;
+        let stats1 = this.gameStats[1].statsData;
+        for (let j = 0; j < stats0.ammoCost.length; j++) {
+          if (stats0.currentMoney[j].values[i] != stats1.currentMoney[j].values[i])
+            alert("currentMoney diff at " + i);
+          if (stats0.minedMoney[j].values[i] != stats1.minedMoney[j].values[i])
+            alert("minedMoney diff at " + i);
+          if (stats0.spentMoney[j].values[i] != stats1.spentMoney[j].values[i])
+            alert("spentMoney diff at " + i);
+          if (stats0.buildingsCost[j].values[i] != stats1.buildingsCost[j].values[i])
+            alert("buildingsCost diff at " + i);
+          if (stats0.buildingWeaponsCost[j].values[i] != stats1.buildingWeaponsCost[j].values[i])
+            alert("buildingWeaponsCost diff at " + i);
+          if (stats0.unitsCost[j].values[i] != stats1.unitsCost[j].values[i])
+            alert("unitsCost diff at " + i);
+          if (stats0.researchesCost[j].values[i] != stats1.researchesCost[j].values[i])
+            alert("researchesCost diff at " + i);
+          if (stats0.ammoCost[j].values[i] != stats1.ammoCost[j].values[i])
+            alert("ammoCost diff at " + i);
+          if (stats0.researchesCount[j].values[i] != stats1.researchesCount[j].values[i])
+            alert("researchesCount diff at " + i);
+          if (stats0.buildingsBuilt[j].values[i] != stats1.buildingsBuilt[j].values[i])
+            alert("buildingsBuilt diff at " + i);
+          if (stats0.buildingsLost[j].values[i] != stats1.buildingsLost[j].values[i])
+            alert("buildingsLost diff at " + i);
+          if (stats0.unitsBuilt[j].values[i] != stats1.unitsBuilt[j].values[i])
+            alert("unitsBuilt diff at " + i);
+          if (stats0.unitsLost[j].values[i] != stats1.unitsLost[j].values[i])
+            alert("unitsLost diff at " + i);
+          if (stats0.destroyedUnits[j].values[i] != stats1.destroyedUnits[j].values[i])
+            alert("destroyedUnits diff at " + i);
+          if (stats0.destroyedBuildings[j].values[i] != stats1.destroyedBuildings[j].values[i])
+            alert("destroyedBuildings diff at " + i);
+          if (stats0.militaryUnits[j].values[i] != stats1.militaryUnits[j].values[i])
+            alert("militaryUnits diff at " + i);
+          if (stats0.unitsValue[j].values[i] != stats1.unitsValue[j].values[i])
+            alert("unitsValue diff at " + i);
+          if (stats0.moneyTransferred[j].values[i] != stats1.moneyTransferred[j].values[i])
+            alert("moneyTransferred diff at " + i);
+          if (stats0.unitsCaptured[j].values[i] != stats1.unitsCaptured[j].values[i])
+            alert("unitsCaptured diff at " + i);
+          if (stats0.unitsTransferred[j].values[i] != stats1.unitsTransferred[j].values[i])
+            alert("unitsTransferred diff at " + i);
+          if (stats0.damageDealt[j].values[i] != stats1.damageDealt[j].values[i])
+            alert("damageDealt diff at " + i);
+          if (stats0.damageReceived[j].values[i] != stats1.damageReceived[j].values[i])
+            alert("damageReceived diff at " + i);
+        }
+      }
+      alert("No differences!");
+    },
     async readFiles() {
       if (!this.files || !this.files.length)
         return;
