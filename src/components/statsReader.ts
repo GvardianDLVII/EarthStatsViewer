@@ -6,29 +6,29 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
   let offset = 0;
   let fileApiVersion = dv.getUint32(offset, true);
   offset += 4;
-  if (fileApiVersion > 3)
+  if (fileApiVersion > 4)
     return undefined; //todo: return Error
   let levelNameLength = dv.getUint32(offset, true);
   offset += 4;
   let levelName = new TextDecoder("utf-16").decode(new Uint16Array(buffer.slice(offset, offset + levelNameLength * 2)));
   offset += levelNameLength * 2;
   let timeStr = new TextDecoder("utf-8").decode(new Uint8Array(buffer.slice(offset, offset + 14)));
-  let time = new Date(timeStr.substring(0,4)+"-"+timeStr.substring(4,6)+"-"+timeStr.substring(6,8)+"T"+timeStr.substring(8,10)+":"+timeStr.substring(10,12)+":"+timeStr.substring(12,14)+"+00:00");
+  let time = new Date(timeStr.substring(0, 4) + "-" + timeStr.substring(4, 6) + "-" + timeStr.substring(6, 8) + "T" + timeStr.substring(8, 10) + ":" + timeStr.substring(10, 12) + ":" + timeStr.substring(12, 14) + "+00:00");
   offset += 14;
   let players = [] as Player[];
-  for(let i = 0; i< 16; i++) {
+  for (let i = 0; i < 16; i++) {
     let slotTaken = dv.getInt8(offset);
     offset++;
-    if(!slotTaken)
+    if (!slotTaken)
       continue;
-    
+
     let playerNameLength = dv.getUint32(offset, true);
     offset += 4;
     let playerName = new TextDecoder("utf-16").decode(new Uint16Array(buffer.slice(offset, offset + playerNameLength * 2)));
     offset += playerNameLength * 2;
     let race = dv.getUint32(offset, true);
     offset += 4;
-    players.push({index: i, name: playerName, race: race, alliances: [], isSpectator: false, team: 0});
+    players.push({ index: i, name: playerName, race: race, alliances: [], isSpectator: false, team: 0 });
   }
 
   let gameStats = {
@@ -61,14 +61,15 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
       damageDealt: players.map<StatsMetric>(p => ({ values: [] })),
       damageReceived: players.map<StatsMetric>(p => ({ values: [] })),
       commandsSent: players.map<StatsMetric>(p => ({ values: [] })),
+      researchCenters: players.map<StatsMetric>(p => ({ values: [] })),
+      buildingsUnderConstruction: players.map<StatsMetric>(p => ({ values: [] })),
+      activeMiningEntities: players.map<StatsMetric>(p => ({ values: [] })),
     },
   };
 
-  while (offset < dv.byteLength - 1)
-  {
+  while (offset < dv.byteLength - 1) {
     offset += readLine(gameStats, dv, offset);
   }
-
   recalculateTeams(gameStats);
 
   return gameStats;
@@ -77,7 +78,7 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
 function readLine(gameStats: GameStats, dv: DataView, offset: number): number {
   let localOffset = 0;
   let firstField = dv.getInt32(offset + localOffset, true);
-  if(firstField == -1) {//is footer
+  if (firstField == -1) {//is footer
     return 4 + readFooter(gameStats, dv, offset + 4)
   }
   gameStats.statsData.ticks.push(firstField);
@@ -140,6 +141,19 @@ function readLine(gameStats: GameStats, dv: DataView, offset: number): number {
     else {
       gameStats.statsData.commandsSent[i].values.push(0);
     }
+    if (gameStats.apiVersion >= 4) {
+      gameStats.statsData.researchCenters[i].values.push(dv.getUint8(offset + localOffset));
+      localOffset += 1;
+      gameStats.statsData.buildingsUnderConstruction[i].values.push(dv.getUint16(offset + localOffset, true));
+      localOffset += 2;
+      gameStats.statsData.activeMiningEntities[i].values.push(dv.getUint16(offset + localOffset, true));
+      localOffset += 2;
+    }
+    else {
+      gameStats.statsData.researchCenters[i].values.push(0);
+      gameStats.statsData.buildingsUnderConstruction[i].values.push(0);
+      gameStats.statsData.activeMiningEntities[i].values.push(0);
+    }
   }
   return localOffset;
 }
@@ -201,7 +215,7 @@ function readFooter(gameStats: GameStats, dv: DataView, offset: number): number 
     for (let j = 0; j < unitsCount; j++) {
       let idIndex = dv.getUint32(offset + localOffset, true);
       localOffset += 4;
-      
+
       let weapons = [] as WeaponStats[];
       for (let k = 0; k < 8; k++) {
         let buildingDamage = dv.getUint32(offset + localOffset, true);

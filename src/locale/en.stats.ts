@@ -131,7 +131,23 @@ export const en = {
       commandsSentLastMin: {
         name: "Commands in last minute",
         description: "Total amount of commands sent by human players in a multiplayer game within last minute",
-      }
+      },
+      researchCenters: {
+        name: "Research centers",
+        description: "Total amount of operating (powered on and enabled) research centers",
+      },
+      buildingsUnderConstruction: {
+        name: "Constructed buildings",
+        description: "Total amount of buildings under construction. This includes currently dropped down LC buildings and queued LC buildings.",
+      },
+      activeMiningEntities: {
+        name: "Active mining entities",
+        description: "Number of active mining objects. For ED it is number of Taigas assigned to a non-exploited mine. For UCS it is number of working harvesters. For LC it is number of non-exploited mines.",
+      },
+      miningEfficiency: {
+        name: "Mining efficiency",
+        description: "Money flow per mining entity",
+      },
     },
   },
   common: {

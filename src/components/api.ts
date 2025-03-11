@@ -42,6 +42,9 @@ export interface StatsData {
   damageDealt: StatsMetric[];
   damageReceived: StatsMetric[];
   commandsSent: StatsMetric[];
+  researchCenters: StatsMetric[];
+  buildingsUnderConstruction: StatsMetric[];
+  activeMiningEntities: StatsMetric[];
 }
 
 export interface StatsMetric {
@@ -78,7 +81,10 @@ export interface PlayerStatsModel {
   damageDealt: number[];
   damageReceived: number[];
   commandsSent: number[];
-  
+  researchCenters: number[];
+  buildingsUnderConstruction: number[];
+  activeMiningEntities: number[];
+
   moneyFlow: number[];
   avgUnitsValue: number[];
   killsDeaths: number[];
@@ -92,7 +98,7 @@ export interface StatsMetricModel {
   id: number;
   name: string;
   description: string;
-  getValue(playerStats: PlayerStatsModel, range: number[]) : number[];
+  getValue(playerStats: PlayerStatsModel, range: number[]): number[];
 }
 
 export interface UnitTemplate {

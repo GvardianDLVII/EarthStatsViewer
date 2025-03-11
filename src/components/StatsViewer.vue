@@ -198,13 +198,17 @@ export default {
             damageDealt: this.gameStats[i].statsData.damageDealt[j].values,
             damageReceived: this.gameStats[i].statsData.damageReceived[j].values,
             commandsSent: this.gameStats[i].statsData.commandsSent[j].values,
+            researchCenters: this.gameStats[i].statsData.researchCenters[j].values,
+            buildingsUnderConstruction: this.gameStats[i].statsData.buildingsUnderConstruction[j].values,
+            activeMiningEntities: this.gameStats[i].statsData.activeMiningEntities[j].values,
             moneyFlow: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.minedMoney[j].values[k - 60])),
             avgUnitsValue: this.gameStats[i].statsData.unitsValue[j].values.map((d, k) => d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
             killsDeaths: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => d/(this.gameStats[i].statsData.unitsLost[j].values[k] ? this.gameStats[i].statsData.unitsLost[j].values[k] : 1)),
             killsDeathsFiveMin: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => (d - (k < 300 ? 0 : this.gameStats[i].statsData.destroyedUnits[j].values[k - 300]))/((this.gameStats[i].statsData.unitsLost[j].values[k] - (k < 300 ? 0 : this.gameStats[i].statsData.unitsLost[j].values[k - 300]))? (this.gameStats[i].statsData.unitsLost[j].values[k] - (k < 300 ? 0 : this.gameStats[i].statsData.unitsLost[j].values[k - 300])) : 1)),
-            commandsSentPerMin: this.gameStats[i].statsData.commandsSent[j].values.map((m, k) => m / k * 60),
+            commandsSentPerMin: this.gameStats[i].statsData.commandsSent[j].values.map((m, k) => k < 60 ? m : m / k * 60),
             commandsSentLastMin: this.gameStats[i].statsData.commandsSent[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.commandsSent[j].values[k - 60])),
             recentDamage: this.gameStats[i].statsData.damageDealt[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.damageDealt[j].values[k - 60])),
+            miningEfficiency: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => (m - (k < 60 ? 0 : this.gameStats[i].statsData.minedMoney[j].values[k - 60])) / (this.gameStats[i].statsData.activeMiningEntities[j].values[k] ? this.gameStats[i].statsData.activeMiningEntities[j].values[k] : 1))
           });
           index++;
         }
@@ -243,13 +247,17 @@ export default {
           damageDealt: this.singleStats.statsData.damageDealt[i].values,
           damageReceived: this.singleStats.statsData.damageReceived[i].values,
           commandsSent: this.singleStats.statsData.commandsSent[i].values,
+          researchCenters: this.singleStats.statsData.researchCenters[i].values,
+          buildingsUnderConstruction: this.singleStats.statsData.buildingsUnderConstruction[i].values,
+          activeMiningEntities: this.singleStats.statsData.activeMiningEntities[i].values,
           moneyFlow: this.singleStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.minedMoney[i].values[j - 60])),
           avgUnitsValue: this.singleStats.statsData.unitsValue[i].values.map((d, j) => d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
           killsDeaths: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => d/(this.singleStats.statsData.unitsLost[i].values[j] ? this.singleStats.statsData.unitsLost[i].values[j] : 1)),
           killsDeathsFiveMin: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => (d - (j < 300 ? 0 : this.singleStats.statsData.destroyedUnits[i].values[j - 300]))/((this.singleStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.singleStats.statsData.unitsLost[i].values[j - 300])) ? (this.singleStats.statsData.unitsLost[i].values[j] - (j < 300 ? 0 : this.singleStats.statsData.unitsLost[i].values[j - 300])) : 1)),
-          commandsSentPerMin: this.singleStats.statsData.commandsSent[i].values.map((m, k) => m / k * 60),
+          commandsSentPerMin: this.singleStats.statsData.commandsSent[i].values.map((m, k) => k < 60 ? m : m / k * 60),
           commandsSentLastMin: this.singleStats.statsData.commandsSent[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.commandsSent[i].values[j - 60])),
           recentDamage: this.singleStats.statsData.damageDealt[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.damageDealt[i].values[j - 60])),
+          miningEfficiency: this.singleStats.statsData.minedMoney[i].values.map((m, j) => (m - (j < 60 ? 0 : this.singleStats.statsData.minedMoney[i].values[j - 60])) / (this.singleStats.statsData.activeMiningEntities[i].values[j] ? this.singleStats.statsData.activeMiningEntities[i].values[j] : 1)),
         };
       });
     },
@@ -287,6 +295,9 @@ export default {
           damageDealt: teamPlayers[0].damageDealt.map((_v, i) => teamPlayers.map(tp => tp.damageDealt[i]).reduce((s, a) => s + a, 0)),
           damageReceived: teamPlayers[0].damageReceived.map((_v, i) => teamPlayers.map(tp => tp.damageReceived[i]).reduce((s, a) => s + a, 0)),
           commandsSent: teamPlayers[0].commandsSent.map((_v, i) => teamPlayers.map(tp => tp.commandsSent[i]).reduce((s, a) => s + a, 0)),
+          researchCenters: teamPlayers[0].researchCenters.map((_v, i) => teamPlayers.map(tp => tp.researchCenters[i]).reduce((s, a) => s + a, 0)),
+          buildingsUnderConstruction: teamPlayers[0].buildingsUnderConstruction.map((_v, i) => teamPlayers.map(tp => tp.buildingsUnderConstruction[i]).reduce((s, a) => s + a, 0)),
+          activeMiningEntities: teamPlayers[0].activeMiningEntities.map((_v, i) => teamPlayers.map(tp => tp.activeMiningEntities[i]).reduce((s, a) => s + a, 0)),
           moneyFlow: teamPlayers[0].moneyFlow.map((_v, i) => teamPlayers.map(tp => tp.moneyFlow[i]).reduce((s, a) => s + a, 0)),
           avgUnitsValue: teamPlayers[0].avgUnitsValue.map((_v, i) => teamPlayers.map(tp => tp.unitsValue[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
           killsDeaths: teamPlayers[0].killsDeaths.map((_v, i) => teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) : 1),
@@ -294,6 +305,7 @@ export default {
           commandsSentPerMin: teamPlayers[0].commandsSentPerMin.map((_v, i) => teamPlayers.map(tp => tp.commandsSentPerMin[i]).reduce((s, a) => s + a, 0)),
           commandsSentLastMin: teamPlayers[0].commandsSentLastMin.map((_v, i) => teamPlayers.map(tp => tp.commandsSentLastMin[i]).reduce((s, a) => s + a, 0)),
           recentDamage: teamPlayers[0].damageDealt.map((_v, i) => teamPlayers.map(tp => tp.damageDealt[i]).reduce((s, a) => s + a, 0)),
+          miningEfficiency: teamPlayers[0].miningEfficiency.map((_v, i) => teamPlayers.map(tp => tp.moneyFlow[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.activeMiningEntities[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.activeMiningEntities[i]).reduce((s, a) => s + a, 0)) : 1),
         };
       });
     },
@@ -503,6 +515,30 @@ export default {
           name: this.$t('statsCharts.metrics.commandsSentLastMin.name'),
           description: this.$t('statsCharts.metrics.commandsSentLastMin.description'),
           getValue: (p, range) => p.commandsSentLastMin.slice(range[0], range[1])
+        },
+        {
+          id: 31,
+          name: this.$t('statsCharts.metrics.researchCenters.name'),
+          description: this.$t('statsCharts.metrics.researchCenters.description'),
+          getValue: (p, range) => p.researchCenters.slice(range[0], range[1])
+        },
+        {
+          id: 32,
+          name: this.$t('statsCharts.metrics.buildingsUnderConstruction.name'),
+          description: this.$t('statsCharts.metrics.buildingsUnderConstruction.description'),
+          getValue: (p, range) => p.buildingsUnderConstruction.slice(range[0], range[1])
+        },
+        {
+          id: 33,
+          name: this.$t('statsCharts.metrics.activeMiningEntities.name'),
+          description: this.$t('statsCharts.metrics.activeMiningEntities.description'),
+          getValue: (p, range) => p.activeMiningEntities.slice(range[0], range[1])
+        },
+        {
+          id: 34,
+          name: this.$t('statsCharts.metrics.miningEfficiency.name'),
+          description: this.$t('statsCharts.metrics.miningEfficiency.description'),
+          getValue: (p, range) => p.miningEfficiency.slice(range[0], range[1])
         }
       ];
     },
@@ -551,8 +587,8 @@ export default {
     },
     teamPrefix(player: Player): string {
       if (player.isSpectator)
-        return "[" + this.$t("statsCharts.observerPrefix") + "]";
-      return `[${player.team}]`;
+        return "[" + this.$t("statsCharts.observerPrefix") + `-${player.index + 1}]`;
+      return `[${player.team}-${player.index + 1}]`;
     },
     select(item :StatsMetricModel): void {
       this.currentChart = item.id;
