@@ -168,6 +168,7 @@ export default {
           let p = this.gameStats[i].players[j];
           if (p.isSpectator)
             continue;
+
           result.push({
             displayName: `[G${i+1}-${p.index + 1}] ${p.name} [${this.races[p.race]}]`,
             name: p.name,
@@ -208,7 +209,9 @@ export default {
             commandsSentPerMin: this.gameStats[i].statsData.commandsSent[j].values.map((m, k) => k < 60 ? m : m / k * 60),
             commandsSentLastMin: this.gameStats[i].statsData.commandsSent[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.commandsSent[j].values[k - 60])),
             recentDamage: this.gameStats[i].statsData.damageDealt[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.damageDealt[j].values[k - 60])),
-            miningEfficiency: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => (m - (k < 60 ? 0 : this.gameStats[i].statsData.minedMoney[j].values[k - 60])) / (this.gameStats[i].statsData.activeMiningEntities[j].values[k] ? this.gameStats[i].statsData.activeMiningEntities[j].values[k] : 1))
+            miningEfficiency: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => k < 60
+              ? (m / (this.gameStats[i].statsData.activeMiningEntities[j].values[k] ? this.gameStats[i].statsData.activeMiningEntities[j].values[k] : 1))
+              : ((m - this.gameStats[i].statsData.minedMoney[j].values[k - 60]) / (Math.max(this.gameStats[i].statsData.activeMiningEntities[j].values[k], this.gameStats[i].statsData.activeMiningEntities[j].values[k - 60]) ? Math.max(this.gameStats[i].statsData.activeMiningEntities[j].values[k], this.gameStats[i].statsData.activeMiningEntities[j].values[k - 60]) : 1)))
           });
           index++;
         }
@@ -257,7 +260,9 @@ export default {
           commandsSentPerMin: this.singleStats.statsData.commandsSent[i].values.map((m, k) => k < 60 ? m : m / k * 60),
           commandsSentLastMin: this.singleStats.statsData.commandsSent[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.commandsSent[i].values[j - 60])),
           recentDamage: this.singleStats.statsData.damageDealt[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.damageDealt[i].values[j - 60])),
-          miningEfficiency: this.singleStats.statsData.minedMoney[i].values.map((m, j) => (m - (j < 60 ? 0 : this.singleStats.statsData.minedMoney[i].values[j - 60])) / (this.singleStats.statsData.activeMiningEntities[i].values[j] ? this.singleStats.statsData.activeMiningEntities[i].values[j] : 1)),
+          miningEfficiency: this.singleStats.statsData.minedMoney[i].values.map((m, k) => k < 60
+            ? (m / (this.singleStats.statsData.activeMiningEntities[i].values[k] ? this.singleStats.statsData.activeMiningEntities[i].values[k] : 1))
+            : ((m - this.singleStats.statsData.minedMoney[i].values[k - 60]) / (Math.max(this.singleStats.statsData.activeMiningEntities[i].values[k], this.singleStats.statsData.activeMiningEntities[i].values[k - 60]) ? Math.max(this.singleStats.statsData.activeMiningEntities[i].values[k], this.singleStats.statsData.activeMiningEntities[i].values[k - 60]) : 1)))
         };
       });
     },
