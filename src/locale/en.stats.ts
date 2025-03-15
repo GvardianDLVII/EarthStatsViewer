@@ -288,7 +288,7 @@ export const en = {
       LCUCU1: "Crusher m1",
       LCUCU2: "Crusher m2",
       LCUCU3: "Crusher m3",
-      LCUHT: "Crion",
+      LCUHT1: "Crion",
       LCUFG: "Fat Girl",
       LCUFG1: "Fat Girl c2",
       LCUFG2: "Fat Girl c3",
