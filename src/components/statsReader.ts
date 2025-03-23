@@ -6,7 +6,7 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
   let offset = 0;
   let fileApiVersion = dv.getUint32(offset, true);
   offset += 4;
-  if (fileApiVersion > 4)
+  if (fileApiVersion > 5)
     return undefined; //todo: return Error
   let levelNameLength = dv.getUint32(offset, true);
   offset += 4;
@@ -299,6 +299,19 @@ function readFooter(gameStats: GameStats, dv: DataView, offset: number): number 
         killedByAmmoMap[ammoName] = kills;
       }
 
+      let damageByMines = 0;
+      let killedByMines = 0;
+      if (gameStats.apiVersion >= 5) {
+        damageByMines = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+        killedByMines = dv.getUint32(offset + localOffset, true);
+        localOffset += 4;
+      }
+      if (damageByMines) {
+        damageByAmmoMap["MINE"] = damageByMines;
+        killedByAmmoMap["MINE"] = killedByMines;
+      }
+
       units.push({
         identity: idIndex,
         weapons: weapons,
@@ -308,6 +321,8 @@ function readFooter(gameStats: GameStats, dv: DataView, offset: number): number 
         killedByBuildings: killedByBuildings,
         damageByAmmo: damageByAmmoMap,
         killedByAmmo: killedByAmmoMap,
+        damageByMines: damageByMines,
+        killedByMines: killedByMines,
       });
     }
     players.push({

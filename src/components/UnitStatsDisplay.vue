@@ -17,6 +17,9 @@
           <v-col cols="6"><span class="ml-4"> {{ $t("unitStats.summary.damageToBuildings") }} </span></v-col>
           <v-col cols="6"> {{ formatDamage(damageToBuildings) }} </v-col>
         </v-row>
+        <v-row dense>
+          <v-col cols="12"><span class="ml-4"> </span></v-col>
+        </v-row>
         <v-row dense class="font-weight-bold">
           <v-col cols="6"> {{ $t("unitStats.summary.totalKills") }} </v-col>
           <v-col cols="6"> {{ formatInt(totalKills) }} </v-col>
@@ -28,6 +31,9 @@
         <v-row dense>
           <v-col cols="6"><span class="ml-4"> {{ $t("unitStats.summary.buildingsKilled") }} </span></v-col>
           <v-col cols="6"> {{ formatInt(buildingsKilled) }} </v-col>
+        </v-row>
+        <v-row dense>
+          <v-col cols="12"><span class="ml-4"> </span></v-col>
         </v-row>
         <v-row dense class="font-weight-bold">
           <v-col cols="6"> {{ $t("unitStats.summary.totalKillsDeaths") }} </v-col>
@@ -47,6 +53,10 @@
           <v-col cols="6"><span class="ml-4"> {{ $t("unitStats.summary.damageFromBuildings") }} </span></v-col>
           <v-col cols="6"> {{ formatDamage(unit.damageByBuildings) }} </v-col>
         </v-row>
+        <v-row dense>
+          <v-col cols="6"><span class="ml-4"> {{ $t("unitStats.summary.damageFromMines") }} </span></v-col>
+          <v-col cols="6"> {{ formatDamage(unit.damageByMines) }} </v-col>
+        </v-row>
         <v-row dense class="font-weight-bold">
           <v-col cols="6"> {{ $t("unitStats.summary.totalDeaths") }} </v-col>
           <v-col cols="6"> {{ formatInt(totalDeaths) }} </v-col>
@@ -58,6 +68,10 @@
         <v-row dense>
           <v-col cols="6"><span class="ml-4"> {{ $t("unitStats.summary.killedByBuildings") }} </span></v-col>
           <v-col cols="6"> {{ formatInt(unit.killedByBuildings) }} </v-col>
+        </v-row>
+        <v-row dense>
+          <v-col cols="6"><span class="ml-4"> {{ $t("unitStats.summary.killedByMines") }} </span></v-col>
+          <v-col cols="6"> {{ formatInt(unit.killedByMines) }} </v-col>
         </v-row>
         <v-row dense class="font-weight-bold">
           <v-col cols="6"> {{ $t("unitStats.summary.totalDamageRatio") }} </v-col>
@@ -146,10 +160,10 @@ export default {
       return deaths;
     },
     totalDamageTaken(): number {
-      return this.damageFromUnits + this.unit.damageByBuildings;
+      return this.damageFromUnits + this.unit.damageByBuildings + this.unit.damageByMines;
     },
     totalDeaths(): number {
-      return this.killedByUnits + this.unit.killedByBuildings;
+      return this.killedByUnits + this.unit.killedByBuildings + this.unit.killedByMines;
     },
     totalKillsDeaths(): number {
       if (this.totalKills == 0 || this.totalDeaths == 0)

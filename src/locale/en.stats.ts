@@ -493,6 +493,8 @@ export const en = {
         UCSWSHR1: "MDW1",
         UCSWSHR2: "MDW2",
         UCSWAN1: "An",
+        UCSCAA1: "AA",
+        UCSCAA2: "AA",
 
         EDBANNER: "Ban",
         LCBANNER: "Ban",
@@ -713,6 +715,8 @@ export const en = {
         UCSWSHR1: "Plasma Warheads",
         UCSWSHR2: "Plasma Warheads upg. 1",
         UCSWAN1: "Animissile",
+        UCSCAA1: "AA Plasma",
+        UCSCAA2: "AA Plasma",
 
         EDBANNER: "Banner",
         LCBANNER: "Banner",
@@ -884,6 +888,7 @@ export const en = {
       MIS_NUCLEAR2: "Submarine nuclear rocket (upg.)",
       MIS_PLASMAROC1: "Submarine plasma",
       MIS_PLASMAROC2: "Submarine plasma (upg.)",
+      MINE: "Mine",
     },
   },
   unitStats: {
@@ -898,9 +903,11 @@ export const en = {
       totalDamageTaken: "Total damage taken",
       damageFromUnits: "from units",
       damageFromBuildings: "from buildings",
+      damageFromMines: "from mines",
       totalDeaths: "Times killed",
       killedByUnits: "by units",
       killedByBuildings: "by buildings",
+      killedByMines: "by mines",
       totalKillsDeaths: "Total K/D",
       totalDamageRatio: "Damage ratio",
     },

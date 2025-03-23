@@ -139,6 +139,8 @@ export interface UnitStats {
   killedByBuildings: number;
   damageByAmmo: object;
   killedByAmmo: object;
+  damageByMines: number;
+  killedByMines: number;
 }
 
 export interface PlayerDamageStats {

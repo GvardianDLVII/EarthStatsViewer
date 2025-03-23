@@ -102,9 +102,11 @@ export default {
             identity: -1,
             damageByAmmo: {},
             damageByBuildings: 0,
+            damageByMines: 0,
             damageByUnits: {},
             killedByAmmo: {},
             killedByBuildings: 0,
+            killedByMines: 0,
             killedByUnits: {},
             weapons: [
               { buildingDamage: 0, buildingsKilled: 0, unitsDamage: {}, unitsKilled: {} },
@@ -130,6 +132,7 @@ export default {
           map[key] = map[key] != undefined ? map[key] + value : value;
         }
         item.stats.damageByBuildings += u.damageByBuildings;
+        item.stats.damageByMines += u.damageByMines;
         for (const [key, value] of Object.entries(u.damageByUnits)) {
           const map = (item.stats.damageByUnits as any);
           map[key] = map[key] != undefined ? map[key] + value : value;
@@ -139,6 +142,7 @@ export default {
           map[key] = map[key] != undefined ? map[key] + value : value;
         }
         item.stats.killedByBuildings += u.killedByBuildings;
+        item.stats.killedByMines += u.killedByMines;
         for (const [key, value] of Object.entries(u.killedByUnits)) {
           const map = (item.stats.killedByUnits as any);
           map[key] = map[key] != undefined ? map[key] + value : value;
