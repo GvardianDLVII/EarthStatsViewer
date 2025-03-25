@@ -113,9 +113,7 @@ export interface PlayerStatsModel {
 }
 
 export interface StatsMetricModel {
-  id: number;
-  name: string;
-  description: string;
+  id: string;
   getValue(playerStats: PlayerStatsModel, range: number[]): number[];
 }
 

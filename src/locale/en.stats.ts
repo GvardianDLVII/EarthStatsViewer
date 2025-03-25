@@ -1,12 +1,15 @@
 export const en = {
   main: {
     title: "Stats viewer",
-    fileInput: "File input",
+    fileInput: {
+      title: "Stats file(s)",
+      placeholder: "Load one or more .stats files",
+    },
     noFileLoaded: "No stats file loaded",
     multipleFilesLoaded: "Multiple files selected",
   },
   options: {
-    showDetails: "Show Details",
+    header: "Options",
     teamMode: "Team mode",
   },
   statsCharts: {
