@@ -45,6 +45,12 @@ export interface StatsData {
   researchCenters: StatsMetric[];
   buildingsUnderConstruction: StatsMetric[];
   activeMiningEntities: StatsMetric[];
+  builders: StatsMetric[];
+  suppliers: StatsMetric[];
+  totalExpLevel: StatsMetric[];
+  banneredMilitaryUnits: StatsMetric[];
+  shadowedMilitaryUnits: StatsMetric[];
+  militaryUnitsInCombat: StatsMetric[];
 }
 
 export interface StatsMetric {
@@ -84,6 +90,12 @@ export interface PlayerStatsModel {
   researchCenters: number[];
   buildingsUnderConstruction: number[];
   activeMiningEntities: number[];
+  builders: number[];
+  suppliers: number[];
+  totalExpLevel: number[];
+  banneredMilitaryUnits: number[];
+  shadowedMilitaryUnits: number[];
+  militaryUnitsInCombat: number[];
 
   moneyFlow: number[];
   avgUnitsValue: number[];
@@ -93,6 +105,11 @@ export interface PlayerStatsModel {
   commandsSentLastMin: number[];
   recentDamage: number[];
   miningEfficiency: number[];
+  bannerCoverage: number[];
+  shadowCoverage: number[];
+  averageExpLevel: number[];
+  suppliersPerUnit: number[];
+  militaryUnitsCombatEngagement: number[];
 }
 
 export interface StatsMetricModel {

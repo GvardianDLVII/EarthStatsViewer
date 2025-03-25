@@ -148,6 +148,34 @@ export const en = {
         name: "Mining efficiency",
         description: "Money flow per mining entity",
       },
+      builders: {
+        name: "Builders",
+        description: "Total number of builders",
+      },
+      suppliers: {
+        name: "Suppliers",
+        description: "Total number of ammo suppliers",
+      },
+      bannerCoverage: {
+        name: "Banner coverage",
+        description: "Percentage of military units in banner range",
+      },
+      shadowCoverage: {
+        name: "Shadow coverage",
+        description: "Percentage of military units cloaked in shadow range (excluding those revealed by radars)",
+      },
+      averageExpLevel: {
+        name: "Avg experience level",
+        description: "Average experience level of a military unit",
+      },
+      suppliersPerUnit: {
+        name: "Suppliers per unit",
+        description: "Number of suppliers per military unit",
+      },
+      militaryUnitsCombatEngagement: {
+        name: "Units in combat",
+        description: "Percentage of units with their primary weapon locked to a target",
+      },
     },
   },
   common: {

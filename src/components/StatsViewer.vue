@@ -202,6 +202,13 @@ export default {
             researchCenters: this.gameStats[i].statsData.researchCenters[j].values,
             buildingsUnderConstruction: this.gameStats[i].statsData.buildingsUnderConstruction[j].values,
             activeMiningEntities: this.gameStats[i].statsData.activeMiningEntities[j].values,
+            builders: this.gameStats[i].statsData.builders[j].values,
+            suppliers: this.gameStats[i].statsData.suppliers[j].values,
+            totalExpLevel: this.gameStats[i].statsData.totalExpLevel[j].values,
+            banneredMilitaryUnits: this.gameStats[i].statsData.banneredMilitaryUnits[j].values,
+            shadowedMilitaryUnits: this.gameStats[i].statsData.shadowedMilitaryUnits[j].values,
+            militaryUnitsInCombat: this.gameStats[i].statsData.militaryUnitsInCombat[j].values,
+
             moneyFlow: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.minedMoney[j].values[k - 60])),
             avgUnitsValue: this.gameStats[i].statsData.unitsValue[j].values.map((d, k) => d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
             killsDeaths: this.gameStats[i].statsData.destroyedUnits[j].values.map((d, k) => d/(this.gameStats[i].statsData.unitsLost[j].values[k] ? this.gameStats[i].statsData.unitsLost[j].values[k] : 1)),
@@ -211,7 +218,12 @@ export default {
             recentDamage: this.gameStats[i].statsData.damageDealt[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.damageDealt[j].values[k - 60])),
             miningEfficiency: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => k < 60
               ? (m / (this.gameStats[i].statsData.activeMiningEntities[j].values[k] ? this.gameStats[i].statsData.activeMiningEntities[j].values[k] : 1))
-              : ((m - this.gameStats[i].statsData.minedMoney[j].values[k - 60]) / (Math.max(this.gameStats[i].statsData.activeMiningEntities[j].values[k], this.gameStats[i].statsData.activeMiningEntities[j].values[k - 60]) ? Math.max(this.gameStats[i].statsData.activeMiningEntities[j].values[k], this.gameStats[i].statsData.activeMiningEntities[j].values[k - 60]) : 1)))
+              : ((m - this.gameStats[i].statsData.minedMoney[j].values[k - 60]) / (Math.max(this.gameStats[i].statsData.activeMiningEntities[j].values[k], this.gameStats[i].statsData.activeMiningEntities[j].values[k - 60]) ? Math.max(this.gameStats[i].statsData.activeMiningEntities[j].values[k], this.gameStats[i].statsData.activeMiningEntities[j].values[k - 60]) : 1))),
+            bannerCoverage: this.gameStats[i].statsData.banneredMilitaryUnits[j].values.map((d, k) => 100 * d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
+            shadowCoverage: this.gameStats[i].statsData.shadowedMilitaryUnits[j].values.map((d, k) => 100 * d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
+            averageExpLevel: this.gameStats[i].statsData.totalExpLevel[j].values.map((d, k) => d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
+            suppliersPerUnit: this.gameStats[i].statsData.suppliers[j].values.map((d, k) => d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
+            militaryUnitsCombatEngagement: this.gameStats[i].statsData.militaryUnitsInCombat[j].values.map((d, k) => 100 * d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
           });
           index++;
         }
@@ -253,6 +265,13 @@ export default {
           researchCenters: this.singleStats.statsData.researchCenters[i].values,
           buildingsUnderConstruction: this.singleStats.statsData.buildingsUnderConstruction[i].values,
           activeMiningEntities: this.singleStats.statsData.activeMiningEntities[i].values,
+          builders: this.singleStats.statsData.builders[i].values,
+          suppliers: this.singleStats.statsData.suppliers[i].values,
+          totalExpLevel: this.singleStats.statsData.totalExpLevel[i].values,
+          banneredMilitaryUnits: this.singleStats.statsData.banneredMilitaryUnits[i].values,
+          shadowedMilitaryUnits: this.singleStats.statsData.shadowedMilitaryUnits[i].values,
+          militaryUnitsInCombat: this.singleStats.statsData.militaryUnitsInCombat[i].values,
+
           moneyFlow: this.singleStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.minedMoney[i].values[j - 60])),
           avgUnitsValue: this.singleStats.statsData.unitsValue[i].values.map((d, j) => d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
           killsDeaths: this.singleStats.statsData.destroyedUnits[i].values.map((d, j) => d/(this.singleStats.statsData.unitsLost[i].values[j] ? this.singleStats.statsData.unitsLost[i].values[j] : 1)),
@@ -262,7 +281,12 @@ export default {
           recentDamage: this.singleStats.statsData.damageDealt[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.damageDealt[i].values[j - 60])),
           miningEfficiency: this.singleStats.statsData.minedMoney[i].values.map((m, k) => k < 60
             ? (m / (this.singleStats.statsData.activeMiningEntities[i].values[k] ? this.singleStats.statsData.activeMiningEntities[i].values[k] : 1))
-            : ((m - this.singleStats.statsData.minedMoney[i].values[k - 60]) / (Math.max(this.singleStats.statsData.activeMiningEntities[i].values[k], this.singleStats.statsData.activeMiningEntities[i].values[k - 60]) ? Math.max(this.singleStats.statsData.activeMiningEntities[i].values[k], this.singleStats.statsData.activeMiningEntities[i].values[k - 60]) : 1)))
+            : ((m - this.singleStats.statsData.minedMoney[i].values[k - 60]) / (Math.max(this.singleStats.statsData.activeMiningEntities[i].values[k], this.singleStats.statsData.activeMiningEntities[i].values[k - 60]) ? Math.max(this.singleStats.statsData.activeMiningEntities[i].values[k], this.singleStats.statsData.activeMiningEntities[i].values[k - 60]) : 1))),
+          bannerCoverage: this.singleStats.statsData.banneredMilitaryUnits[i].values.map((d, j) => 100 * d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
+          shadowCoverage: this.singleStats.statsData.shadowedMilitaryUnits[i].values.map((d, j) => 100 * d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
+          averageExpLevel: this.singleStats.statsData.totalExpLevel[i].values.map((d, j) => d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
+          suppliersPerUnit: this.singleStats.statsData.suppliers[i].values.map((d, j) => d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
+          militaryUnitsCombatEngagement: this.singleStats.statsData.militaryUnitsInCombat[i].values.map((d, j) => 100 * d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
         };
       });
     },
@@ -303,6 +327,13 @@ export default {
           researchCenters: teamPlayers[0].researchCenters.map((_v, i) => teamPlayers.map(tp => tp.researchCenters[i]).reduce((s, a) => s + a, 0)),
           buildingsUnderConstruction: teamPlayers[0].buildingsUnderConstruction.map((_v, i) => teamPlayers.map(tp => tp.buildingsUnderConstruction[i]).reduce((s, a) => s + a, 0)),
           activeMiningEntities: teamPlayers[0].activeMiningEntities.map((_v, i) => teamPlayers.map(tp => tp.activeMiningEntities[i]).reduce((s, a) => s + a, 0)),
+          builders: teamPlayers[0].builders.map((_v, i) => teamPlayers.map(tp => tp.builders[i]).reduce((s, a) => s + a, 0)),
+          suppliers: teamPlayers[0].suppliers.map((_v, i) => teamPlayers.map(tp => tp.suppliers[i]).reduce((s, a) => s + a, 0)),
+          totalExpLevel: teamPlayers[0].totalExpLevel.map((_v, i) => teamPlayers.map(tp => tp.totalExpLevel[i]).reduce((s, a) => s + a, 0)),
+          banneredMilitaryUnits: teamPlayers[0].banneredMilitaryUnits.map((_v, i) => teamPlayers.map(tp => tp.banneredMilitaryUnits[i]).reduce((s, a) => s + a, 0)),
+          shadowedMilitaryUnits: teamPlayers[0].shadowedMilitaryUnits.map((_v, i) => teamPlayers.map(tp => tp.shadowedMilitaryUnits[i]).reduce((s, a) => s + a, 0)),
+          militaryUnitsInCombat: teamPlayers[0].militaryUnitsInCombat.map((_v, i) => teamPlayers.map(tp => tp.militaryUnitsInCombat[i]).reduce((s, a) => s + a, 0)),
+
           moneyFlow: teamPlayers[0].moneyFlow.map((_v, i) => teamPlayers.map(tp => tp.moneyFlow[i]).reduce((s, a) => s + a, 0)),
           avgUnitsValue: teamPlayers[0].avgUnitsValue.map((_v, i) => teamPlayers.map(tp => tp.unitsValue[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
           killsDeaths: teamPlayers[0].killsDeaths.map((_v, i) => teamPlayers.map(tp => tp.destroyedUnits[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.unitsLost[i]).reduce((s, a) => s + a, 0)) : 1),
@@ -311,6 +342,11 @@ export default {
           commandsSentLastMin: teamPlayers[0].commandsSentLastMin.map((_v, i) => teamPlayers.map(tp => tp.commandsSentLastMin[i]).reduce((s, a) => s + a, 0)),
           recentDamage: teamPlayers[0].damageDealt.map((_v, i) => teamPlayers.map(tp => tp.damageDealt[i]).reduce((s, a) => s + a, 0)),
           miningEfficiency: teamPlayers[0].miningEfficiency.map((_v, i) => teamPlayers.map(tp => tp.moneyFlow[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.activeMiningEntities[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.activeMiningEntities[i]).reduce((s, a) => s + a, 0)) : 1),
+          bannerCoverage: teamPlayers[0].bannerCoverage.map((_v, i) => teamPlayers.map(tp => 100 * tp.banneredMilitaryUnits[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
+          shadowCoverage: teamPlayers[0].shadowCoverage.map((_v, i) => teamPlayers.map(tp => 100 * tp.shadowedMilitaryUnits[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
+          averageExpLevel: teamPlayers[0].averageExpLevel.map((_v, i) => teamPlayers.map(tp => tp.totalExpLevel[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
+          suppliersPerUnit: teamPlayers[0].suppliersPerUnit.map((_v, i) => teamPlayers.map(tp => tp.suppliers[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
+          militaryUnitsCombatEngagement: teamPlayers[0].militaryUnitsCombatEngagement.map((_v, i) => teamPlayers.map(tp => 100 * tp.militaryUnitsInCombat[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
         };
       });
     },
@@ -544,7 +580,49 @@ export default {
           name: this.$t('statsCharts.metrics.miningEfficiency.name'),
           description: this.$t('statsCharts.metrics.miningEfficiency.description'),
           getValue: (p, range) => p.miningEfficiency.slice(range[0], range[1])
-        }
+        },
+        {
+          id: 35,
+          name: this.$t('statsCharts.metrics.builders.name'),
+          description: this.$t('statsCharts.metrics.builders.description'),
+          getValue: (p, range) => p.builders.slice(range[0], range[1])
+        },
+        {
+          id: 36,
+          name: this.$t('statsCharts.metrics.suppliers.name'),
+          description: this.$t('statsCharts.metrics.suppliers.description'),
+          getValue: (p, range) => p.suppliers.slice(range[0], range[1])
+        },
+        {
+          id: 37,
+          name: this.$t('statsCharts.metrics.bannerCoverage.name'),
+          description: this.$t('statsCharts.metrics.bannerCoverage.description'),
+          getValue: (p, range) => p.bannerCoverage.slice(range[0], range[1])
+        },
+        {
+          id: 38,
+          name: this.$t('statsCharts.metrics.shadowCoverage.name'),
+          description: this.$t('statsCharts.metrics.shadowCoverage.description'),
+          getValue: (p, range) => p.shadowCoverage.slice(range[0], range[1])
+        },
+        {
+          id: 39,
+          name: this.$t('statsCharts.metrics.averageExpLevel.name'),
+          description: this.$t('statsCharts.metrics.averageExpLevel.description'),
+          getValue: (p, range) => p.averageExpLevel.slice(range[0], range[1])
+        },
+        {
+          id: 40,
+          name: this.$t('statsCharts.metrics.suppliersPerUnit.name'),
+          description: this.$t('statsCharts.metrics.suppliersPerUnit.description'),
+          getValue: (p, range) => p.suppliersPerUnit.slice(range[0], range[1])
+        },
+        {
+          id: 41,
+          name: this.$t('statsCharts.metrics.militaryUnitsCombatEngagement.name'),
+          description: this.$t('statsCharts.metrics.militaryUnitsCombatEngagement.description'),
+          getValue: (p, range) => p.militaryUnitsCombatEngagement.slice(range[0], range[1])
+        },
       ];
     },
     chartData(): any {
