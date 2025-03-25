@@ -39,6 +39,7 @@
                 rounded="0"
                 density="compact"
                 group
+                mandatory
                 color="primary"
               >
                 <v-btn value="chart">
