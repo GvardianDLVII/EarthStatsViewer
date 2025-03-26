@@ -45,6 +45,7 @@ export interface StatsData {
   researchCenters: StatsMetric[];
   buildingsUnderConstruction: StatsMetric[];
   activeMiningEntities: StatsMetric[];
+  factories: StatsMetric[];
   builders: StatsMetric[];
   suppliers: StatsMetric[];
   totalExpLevel: StatsMetric[];
@@ -90,6 +91,7 @@ export interface PlayerStatsModel {
   researchCenters: number[];
   buildingsUnderConstruction: number[];
   activeMiningEntities: number[];
+  factories: number[];
   builders: number[];
   suppliers: number[];
   totalExpLevel: number[];

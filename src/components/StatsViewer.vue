@@ -103,7 +103,7 @@
                   </v-expansion-panel-title>
                   <v-expansion-panel-text>
                     <v-btn
-                      v-for="id in ['buildingsBuilt', 'buildingsLost', 'buildingsCost', 'buildingsUnderConstruction', 'builders']" :key="id"
+                      v-for="id in ['buildingsBuilt', 'buildingsLost', 'buildingsCost', 'buildingsUnderConstruction', 'factories', 'builders']" :key="id"
                       variant="outlined"
                       @click="currentChart = id"
                       width="100%"
@@ -357,6 +357,7 @@ export default {
             researchCenters: this.gameStats[i].statsData.researchCenters[j].values,
             buildingsUnderConstruction: this.gameStats[i].statsData.buildingsUnderConstruction[j].values,
             activeMiningEntities: this.gameStats[i].statsData.activeMiningEntities[j].values,
+            factories: this.gameStats[i].statsData.factories[j].values,
             builders: this.gameStats[i].statsData.builders[j].values,
             suppliers: this.gameStats[i].statsData.suppliers[j].values,
             totalExpLevel: this.gameStats[i].statsData.totalExpLevel[j].values,
@@ -420,6 +421,7 @@ export default {
           researchCenters: this.singleStats.statsData.researchCenters[i].values,
           buildingsUnderConstruction: this.singleStats.statsData.buildingsUnderConstruction[i].values,
           activeMiningEntities: this.singleStats.statsData.activeMiningEntities[i].values,
+          factories: this.singleStats.statsData.factories[i].values,
           builders: this.singleStats.statsData.builders[i].values,
           suppliers: this.singleStats.statsData.suppliers[i].values,
           totalExpLevel: this.singleStats.statsData.totalExpLevel[i].values,
@@ -482,6 +484,7 @@ export default {
           researchCenters: teamPlayers[0].researchCenters.map((_v, i) => teamPlayers.map(tp => tp.researchCenters[i]).reduce((s, a) => s + a, 0)),
           buildingsUnderConstruction: teamPlayers[0].buildingsUnderConstruction.map((_v, i) => teamPlayers.map(tp => tp.buildingsUnderConstruction[i]).reduce((s, a) => s + a, 0)),
           activeMiningEntities: teamPlayers[0].activeMiningEntities.map((_v, i) => teamPlayers.map(tp => tp.activeMiningEntities[i]).reduce((s, a) => s + a, 0)),
+          factories: teamPlayers[0].factories.map((_v, i) => teamPlayers.map(tp => tp.factories[i]).reduce((s, a) => s + a, 0)),
           builders: teamPlayers[0].builders.map((_v, i) => teamPlayers.map(tp => tp.builders[i]).reduce((s, a) => s + a, 0)),
           suppliers: teamPlayers[0].suppliers.map((_v, i) => teamPlayers.map(tp => tp.suppliers[i]).reduce((s, a) => s + a, 0)),
           totalExpLevel: teamPlayers[0].totalExpLevel.map((_v, i) => teamPlayers.map(tp => tp.totalExpLevel[i]).reduce((s, a) => s + a, 0)),
@@ -672,6 +675,10 @@ export default {
         {
           id: "miningEfficiency",
           getValue: (p, range) => p.miningEfficiency.slice(range[0], range[1])
+        },
+        {
+          id: "factories",
+          getValue: (p, range) => p.factories.slice(range[0], range[1])
         },
         {
           id: "builders",

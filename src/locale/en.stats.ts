@@ -151,6 +151,10 @@ export const en = {
         name: "Mining efficiency",
         description: "Money flow per mining entity",
       },
+      factories: {
+        name: "Factories",
+        description: "Total number of military factories, shipyards and LC bases",
+      },
       builders: {
         name: "Builders",
         description: "Total number of builders",

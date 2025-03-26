@@ -64,6 +64,7 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
       researchCenters: players.map<StatsMetric>(p => ({ values: [] })),
       buildingsUnderConstruction: players.map<StatsMetric>(p => ({ values: [] })),
       activeMiningEntities: players.map<StatsMetric>(p => ({ values: [] })),
+      factories: players.map<StatsMetric>(p => ({ values: [] })),
       builders: players.map<StatsMetric>(p => ({ values: [] })),
       suppliers: players.map<StatsMetric>(p => ({ values: [] })),
       totalExpLevel: players.map<StatsMetric>(p => ({ values: [] })),
@@ -161,6 +162,8 @@ function readLine(gameStats: GameStats, dv: DataView, offset: number): number {
       gameStats.statsData.activeMiningEntities[i].values.push(0);
     }
     if (gameStats.apiVersion >= 6) {
+      gameStats.statsData.factories[i].values.push(dv.getUint16(offset + localOffset, true));
+      localOffset += 2;
       gameStats.statsData.builders[i].values.push(dv.getUint16(offset + localOffset, true));
       localOffset += 2;
       gameStats.statsData.suppliers[i].values.push(dv.getUint16(offset + localOffset, true));
@@ -175,6 +178,7 @@ function readLine(gameStats: GameStats, dv: DataView, offset: number): number {
       localOffset += 2;
     }
     else {
+      gameStats.statsData.factories[i].values.push(0);
       gameStats.statsData.builders[i].values.push(0);
       gameStats.statsData.suppliers[i].values.push(0);
       gameStats.statsData.totalExpLevel[i].values.push(0);
