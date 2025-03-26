@@ -239,7 +239,7 @@
 
 <script lang="ts">
 import { Line } from 'vue-chartjs'
-import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend } from 'chart.js'
+import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Title, Legend, scales } from 'chart.js'
 import { GameStats, Player, PlayerStatsModel, StatsMetricModel } from './api';
 import { createBackgroundPlugin } from '@/plugins/chartjs';
 import { readStats } from './statsReader';
@@ -262,9 +262,27 @@ export default {
         intersect: false,
         mode: "index",
       },
+      scales: {
+        x: {
+          grid: {
+            color: '#2a2a2a'
+          },
+          ticks: {
+            color: '#888888',
+          },
+        },
+        y: {
+          grid: {
+            color: '#2a2a2a',
+          },
+          ticks: {
+            color: '#888888',
+          },
+        },
+      },
       plugins: {
         customCanvasBackgroundColor: {
-          color: '#c1cbe3',
+          color: '#222222',
         },
         tooltip: {
           itemSort: (a: any, b: any) => {
@@ -273,6 +291,11 @@ export default {
           position: 'average',
           yAlign: 'center',
         },
+        legend: {
+          labels: {
+            color: '#cccccc'
+          }
+        }
       },
     } as any,
     plugin: createBackgroundPlugin(),
