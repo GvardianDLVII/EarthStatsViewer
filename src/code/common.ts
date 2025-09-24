@@ -415,8 +415,8 @@ export var weaponGroupMap: object = {
   UCSWDHG1: "UCSWHG",
   UCSWACH1: 'UCSWCH',
   UCSWACH2: "UCSWCH",
-  UCSWASP1: "UCSWSP",
-  UCSWASP2: "UCSWSP",
+  UCSWAP1: "UCSWSP",
+  UCSWAP2: "UCSWSP",
   UCSWASR1: "UCSWSR",
   UCSWASR2: "UCSWSR",
   UCSWAMR1: "UCSWMR",
@@ -463,14 +463,14 @@ export var weaponGroupMap: object = {
   UCSSUT: "UCSSUT",
 }
 
-export function formatDecimal (num: number): string {
-  return Intl.NumberFormat("en-US", {minimumFractionDigits: 1, maximumFractionDigits: 1}).format(num);
+export function formatDecimal(num: number): string {
+  return Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(num);
 };
 
-export function formatDamage (num: number): string {
-  return Intl.NumberFormat("en-US", {minimumFractionDigits: 1, maximumFractionDigits: 1}).format(num / 1000) +"K";
+export function formatDamage(num: number): string {
+  return Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(num / 1000) + "K";
 };
 
-export function formatInt (num: number): string {
+export function formatInt(num: number): string {
   return Intl.NumberFormat("en-US").format(num);
 };
