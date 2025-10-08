@@ -6,7 +6,7 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
   let offset = 0;
   let fileApiVersion = dv.getUint32(offset, true);
   offset += 4;
-  if (fileApiVersion > 6)
+  if (fileApiVersion > 7)
     return undefined; //todo: return Error
   let levelNameLength = dv.getUint32(offset, true);
   offset += 4;
@@ -71,6 +71,8 @@ export async function readStats(file: File): Promise<GameStats | undefined> {
       banneredMilitaryUnits: players.map<StatsMetric>(p => ({ values: [] })),
       shadowedMilitaryUnits: players.map<StatsMetric>(p => ({ values: [] })),
       militaryUnitsInCombat: players.map<StatsMetric>(p => ({ values: [] })),
+      hpRepaired: players.map<StatsMetric>(p => ({ values: [] })),
+      crRepaired: players.map<StatsMetric>(p => ({ values: [] })),
     },
   };
 
@@ -185,6 +187,16 @@ function readLine(gameStats: GameStats, dv: DataView, offset: number): number {
       gameStats.statsData.banneredMilitaryUnits[i].values.push(0);
       gameStats.statsData.shadowedMilitaryUnits[i].values.push(0);
       gameStats.statsData.militaryUnitsInCombat[i].values.push(0);
+    }
+    if (gameStats.apiVersion >= 7) {
+      gameStats.statsData.hpRepaired[i].values.push(dv.getUint32(offset + localOffset, true));
+      localOffset += 4;
+      gameStats.statsData.crRepaired[i].values.push(dv.getUint32(offset + localOffset, true));
+      localOffset += 4;
+    }
+    else {
+      gameStats.statsData.hpRepaired[i].values.push(0);
+      gameStats.statsData.crRepaired[i].values.push(0);
     }
   }
   return localOffset;

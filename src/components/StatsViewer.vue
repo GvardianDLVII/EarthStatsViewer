@@ -160,7 +160,7 @@
                   </v-expansion-panel-title>
                   <v-expansion-panel-text>
                     <v-btn
-                      v-for="id in ['commandsSent', 'commandsSentPerMin', 'commandsSentLastMin', 'researchesCount', 'researchCenters', 'suppliersPerUnit']" :key="id"
+                      v-for="id in ['commandsSent', 'commandsSentPerMin', 'commandsSentLastMin', 'researchesCount', 'researchCenters', 'suppliersPerUnit', 'hpRepaired', 'crRepaired']" :key="id"
                       variant="outlined"
                       @click="currentChart = id"
                       width="100%"
@@ -364,6 +364,8 @@ export default {
             banneredMilitaryUnits: this.gameStats[i].statsData.banneredMilitaryUnits[j].values,
             shadowedMilitaryUnits: this.gameStats[i].statsData.shadowedMilitaryUnits[j].values,
             militaryUnitsInCombat: this.gameStats[i].statsData.militaryUnitsInCombat[j].values,
+            hpRepaired: this.gameStats[i].statsData.hpRepaired[j].values,
+            crRepaired: this.gameStats[i].statsData.crRepaired[j].values,
 
             moneyFlow: this.gameStats[i].statsData.minedMoney[j].values.map((m, k) => m - (k < 60 ? 0 : this.gameStats[i].statsData.minedMoney[j].values[k - 60])),
             avgUnitsValue: this.gameStats[i].statsData.unitsValue[j].values.map((d, k) => d/(this.gameStats[i].statsData.militaryUnits[j].values[k] ? this.gameStats[i].statsData.militaryUnits[j].values[k] : 1)),
@@ -428,6 +430,8 @@ export default {
           banneredMilitaryUnits: this.singleStats.statsData.banneredMilitaryUnits[i].values,
           shadowedMilitaryUnits: this.singleStats.statsData.shadowedMilitaryUnits[i].values,
           militaryUnitsInCombat: this.singleStats.statsData.militaryUnitsInCombat[i].values,
+          hpRepaired: this.singleStats.statsData.hpRepaired[i].values,
+          crRepaired: this.singleStats.statsData.crRepaired[i].values,
 
           moneyFlow: this.singleStats.statsData.minedMoney[i].values.map((m, j) => m - (j < 60 ? 0 : this.singleStats.statsData.minedMoney[i].values[j - 60])),
           avgUnitsValue: this.singleStats.statsData.unitsValue[i].values.map((d, j) => d/(this.singleStats.statsData.militaryUnits[i].values[j] ? this.singleStats.statsData.militaryUnits[i].values[j] : 1)),
@@ -491,6 +495,8 @@ export default {
           banneredMilitaryUnits: teamPlayers[0].banneredMilitaryUnits.map((_v, i) => teamPlayers.map(tp => tp.banneredMilitaryUnits[i]).reduce((s, a) => s + a, 0)),
           shadowedMilitaryUnits: teamPlayers[0].shadowedMilitaryUnits.map((_v, i) => teamPlayers.map(tp => tp.shadowedMilitaryUnits[i]).reduce((s, a) => s + a, 0)),
           militaryUnitsInCombat: teamPlayers[0].militaryUnitsInCombat.map((_v, i) => teamPlayers.map(tp => tp.militaryUnitsInCombat[i]).reduce((s, a) => s + a, 0)),
+          hpRepaired: teamPlayers[0].hpRepaired.map((_v, i) => teamPlayers.map(tp => tp.hpRepaired[i]).reduce((s, a) => s + a, 0)),
+          crRepaired: teamPlayers[0].crRepaired.map((_v, i) => teamPlayers.map(tp => tp.crRepaired[i]).reduce((s, a) => s + a, 0)),
 
           moneyFlow: teamPlayers[0].moneyFlow.map((_v, i) => teamPlayers.map(tp => tp.moneyFlow[i]).reduce((s, a) => s + a, 0)),
           avgUnitsValue: teamPlayers[0].avgUnitsValue.map((_v, i) => teamPlayers.map(tp => tp.unitsValue[i]).reduce((s, a) => s + a, 0) / (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) ? (teamPlayers.map(tp => tp.militaryUnits[i]).reduce((s, a) => s + a, 0)) : 1),
@@ -707,6 +713,14 @@ export default {
         {
           id: "militaryUnitsCombatEngagement",
           getValue: (p, range) => p.militaryUnitsCombatEngagement.slice(range[0], range[1])
+        },
+        {
+          id: "hpRepaired",
+          getValue: (p, range) => p.hpRepaired.slice(range[0], range[1])
+        },
+        {
+          id: "crRepaired",
+          getValue: (p, range) => p.crRepaired.slice(range[0], range[1])
         },
       ];
     },

@@ -52,6 +52,8 @@ export interface StatsData {
   banneredMilitaryUnits: StatsMetric[];
   shadowedMilitaryUnits: StatsMetric[];
   militaryUnitsInCombat: StatsMetric[];
+  hpRepaired: StatsMetric[];
+  crRepaired: StatsMetric[];
 }
 
 export interface StatsMetric {
@@ -98,6 +100,8 @@ export interface PlayerStatsModel {
   banneredMilitaryUnits: number[];
   shadowedMilitaryUnits: number[];
   militaryUnitsInCombat: number[];
+  hpRepaired: number[];
+  crRepaired: number[];
 
   moneyFlow: number[];
   avgUnitsValue: number[];

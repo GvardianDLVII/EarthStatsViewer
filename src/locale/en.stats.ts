@@ -183,6 +183,14 @@ export const en = {
         name: "Units in combat",
         description: "Percentage of units with their primary weapon locked to a target",
       },
+      hpRepaired: {
+        name: "Repaired HP",
+        description: "Amount of HP repaired by ED/UCS repairers",
+      },
+      crRepaired: {
+        name: "Repaired CR",
+        description: "CR value of repaired HP",
+      },
     },
   },
   common: {
