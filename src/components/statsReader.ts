@@ -384,7 +384,7 @@ function readFooter(gameStats: GameStats, dv: DataView, offset: number): number 
 
 function recalculateTeams(gameStats: GameStats): void {
   for (let i = 0; i < gameStats.players.length; i++) {
-    if (gameStats.statsData.currentMoney[i].values[0] == 0) {
+    if (gameStats.statsData.currentMoney[i].values[0] == 0 && gameStats.statsData.unitsBuilt[i].values[gameStats.statsData.unitsBuilt[i].values.length - 1] == 0 && gameStats.statsData.buildingsBuilt[i].values[gameStats.statsData.buildingsBuilt[i].values.length - 1] == 0) {
       gameStats.players[i].isSpectator = true;
     }
   }
