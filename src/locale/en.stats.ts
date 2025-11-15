@@ -264,6 +264,10 @@ export const en = {
       EDUTO1: "MI 42 Lenin",
       EDUSS: "Space shuttle",
       EDUTA1: "Ukraine",
+      EDUMM11: "Truck (African civil unit)",
+      EDUMM21: "Truck (African light tank)",
+      EDUMM31: "Heavy tank (African tank)",
+      EDUMM41: "Tank (African alt tank)",
 
       UCSUBU1: "Mammoth",
       UCSUAS1: "Condor",
@@ -467,6 +471,10 @@ export const en = {
         EDWSHR2: "BRL2",
         EDWART: "ART",
         EDWAN1: "An",
+        EDWMM21: "LhC",
+        EDWMM31: "hR",
+        EDWMM41: "hC1",
+        EDWMM42: "hC2",
 
         UCSWCH: "MG",
         UCSWTCH1: "MG1",
@@ -624,7 +632,7 @@ export const en = {
         LCWAS2: "Heavy Sonic Cannon upg. 1",
         LCWHERO: "Plasma Beam",
         LCWUFO: "Alien Weapon",
-        LCWAN1: "Animissile",
+        LCWAN1: "Antimissile",
 
         EDWCH: 'MG 20mm',
         EDWCH1: 'MG 20mm',
@@ -688,7 +696,11 @@ export const en = {
         EDWSHR1: "Nuclear warheads",
         EDWSHR2: "Nuclear warheads upg. 1",
         EDWART: "Artillery",
-        EDWAN1: "Animissile",
+        EDWAN1: "Antimissile",
+        EDWMM21: "Long Heavy Cannon (African)",
+        EDWMM31: "Heavy Rocket Launcher (African)",
+        EDWMM41: "Heavy Cannon (African)",
+        EDWMM42: "Heavy Cannon upg. 1 (African)",
 
         UCSWCH: 'MG 20mm',
         UCSWTCH1: 'MG 20mm',
@@ -757,7 +769,7 @@ export const en = {
         UCSWSHR: "Plasma Warheads",
         UCSWSHR1: "Plasma Warheads",
         UCSWSHR2: "Plasma Warheads upg. 1",
-        UCSWAN1: "Animissile",
+        UCSWAN1: "Antimissile",
         UCSCAA1: "AA Plasma",
         UCSCAA2: "AA Plasma",
 
