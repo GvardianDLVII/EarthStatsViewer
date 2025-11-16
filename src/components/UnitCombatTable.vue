@@ -19,7 +19,8 @@
       >
       <template v-slot:item.player="{ value }">
         <div class="d-flex">
-          <player-label :index="value" :name="(stats.players.find(i => i.index == value) as any).name" />
+          <player-label v-if="value != 255" :index="value" :name="(stats.players.find(i => i.index == value) as any).name" />
+          <player-label v-else :index="15" :name="$t('unitStats.playerStats.combined')" />
         </div>
       </template>
       <template v-slot:item.unit="{ value }">
@@ -121,7 +122,7 @@ export default {
         
         let tempIdentity: UnitTemplate = {
           chassis: actualChassis,
-          playerIndex: identity.playerIndex,
+          playerIndex: this.template.playerIndex == 255 ? 255 : identity.playerIndex,
           powerShield: identity.powerShield,
           weapons: actualWeapons,
         };

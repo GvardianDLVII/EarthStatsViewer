@@ -187,11 +187,18 @@
               <player-label :index="player.index" :name="player.name" />
               {{ player.name }}
             </v-tab>
+            <v-tab value="15">
+              <player-label :index="15" :name="$t('unitStats.playerStats.combined')" />
+              {{ $t("unitStats.playerStats.combined") }}
+            </v-tab>
           </v-tabs>
           <v-card-text>
             <v-tabs-window v-model="tab">
               <v-tabs-window-item v-for="player in singleStats.players.filter(p => !p.isSpectator)" :value="player.index">
                 <player-stats :player-index="player.index" :stats="singleStats" />
+              </v-tabs-window-item>
+              <v-tabs-window-item value="15">
+                <player-stats :player-index="255" :stats="singleStats" />
               </v-tabs-window-item>
             </v-tabs-window>
           </v-card-text>

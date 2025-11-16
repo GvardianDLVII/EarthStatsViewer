@@ -58,7 +58,10 @@ export default {
 
       let grouppedIdentites = [] as UnitTemplate[];
       let identitiesMap: object = {};
-      this.stats.damageStats.players[this.playerIndex].units.forEach(u => {
+      let units = this.playerIndex == 255
+        ? this.stats.damageStats.players.flatMap(p => p.units)
+        : this.stats.damageStats.players[this.playerIndex].units;
+      units.forEach(u => {
         let identity = (this.stats.damageStats as any).identities[u.identity] as UnitTemplate;
         let actualChassis = this.groupChassis && (chassisGroupMap as any)[identity.chassis]
           ? (chassisGroupMap as any)[identity.chassis]
@@ -77,7 +80,7 @@ export default {
         
         let tempIdentity: UnitTemplate = {
           chassis: actualChassis,
-          playerIndex: identity.playerIndex,
+          playerIndex: this.playerIndex == 255 ? 255 : identity.playerIndex,
           powerShield: identity.powerShield,
           weapons: actualWeapons,
         };
@@ -94,7 +97,7 @@ export default {
 
       let result = [] as StatsRow[];
 
-      this.stats.damageStats.players[this.playerIndex].units.forEach(u => {
+      units.forEach(u => {
         let mappedItem = (identitiesMap as any)[u.identity] as UnitTemplate;
         let item = result.find(r => TemplatesEqual(mappedItem, r.template, !this.groupShields));
         if (item == undefined) {

@@ -996,6 +996,7 @@ export const en = {
       groupChassis: "Group chassis",
       groupWeapons: "Group weapons",
       groupShields: "Group shields",
+      combined: "Combined",
     },
     weaponsTable: {
       title: "Weapon stats",
